@@ -1,0 +1,1 @@
+# solr-quantities-detection-qparsers
