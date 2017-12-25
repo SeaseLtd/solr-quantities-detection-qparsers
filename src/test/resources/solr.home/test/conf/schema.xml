@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="Quantities Detection Plugin - sample schema" version="1.5">
+    <fieldType name="string" class="solr.StrField" indexed="true" stored="true" />
+    <field name="id" type="string"/>
+    <field name="country" type="string"/>
+
+    <fieldType name="text" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true" indexed="true" stored="false" omitNorms="true">
+        <analyzer type="index">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.WordDelimiterGraphFilterFactory"
+                    generateWordParts="0"
+                    generateNumberParts="1"
+                    catenateWords="0"
+                    catenateNumbers="0"
+                    catenateAll="0"
+                    splitOnCaseChange="0" />
+            <filter class="solr.EnglishPossessiveFilterFactory"/>
+            <filter class="solr.EnglishMinimalStemFilterFactory"/>
+            <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+            <filter class="solr.EnglishPossessiveFilterFactory"/>
+            <filter class="solr.EnglishMinimalStemFilterFactory"/>
+            <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+        </analyzer>
+    </fieldType>
+    <field name="name" type="text"/>
+
+    <fieldType name="tint" class="solr.TrieIntField" precisionStep="8" positionIncrementGap="0" indexed="true" stored="true"/>
+    <field name="height" type="tint"/>
+
+    <fieldType name="tfloat" class="solr.TrieFloatField" precisionStep="8" positionIncrementGap="0" indexed="true" stored="true"/>
+    <field name="capacity" type="tfloat"/>
+    <uniqueKey>id</uniqueKey>
+</schema>

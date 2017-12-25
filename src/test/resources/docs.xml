@@ -1,0 +1,349 @@
+<add>
+    <doc>
+        <field name="id">1</field>
+        <field name="name">ZOIGL</field>
+        <field name="country">Germany</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">2</field>
+        <field name="name">FRANZ XAVER SMOKED MÄRZEN</field>
+        <field name="country">Germany</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">3</field>
+        <field name="name">AFFUMICATOR</field>
+        <field name="country">Germany</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">4</field>
+        <field name="name">PROTOTYP</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">5</field>
+        <field name="name">SCHÖNRAMER SAPHIR BOCK</field>
+        <field name="country">Germany</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">6</field>
+        <field name="name">AYINGER CELEBRATOR DOPPELBOCK</field>
+        <field name="country">Germany</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">7</field>
+        <field name="name">KLOSTER PILS</field>
+        <field name="country">Germany</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">8</field>
+        <field name="name">HOFBRÄU ORIGINAL</field>
+        <field name="country">Germany</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">9</field>
+        <field name="name">GÄNSTALLER BRÄU SCHWARZE 90</field>
+        <field name="country">Germany</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">10</field>
+        <field name="name">VICARIUM</field>
+        <field name="country">Italy</field>
+        <field name="capacity">33</field>
+    </doc>
+    <doc>
+        <field name="id">11</field>
+        <field name="name">NØGNE SUNTURNBREW BOURBON</field>
+        <field name="country">Norway</field>
+        <field name="capacity">25</field>
+    </doc>
+    <doc>
+        <field name="id">12</field>
+        <field name="name">NØGNE IMPERIAL STOUT BARREL AGED</field>
+        <field name="country">Norway</field>
+        <field name="capacity">25</field>
+    </doc>
+    <doc>
+        <field name="id">13</field>
+        <field name="name">LINDEMANS FRAMBOISE</field>
+        <field name="country">Belgium</field>
+        <field name="capacity">25</field>
+    </doc>
+    <doc>
+        <field name="id">14</field>
+        <field name="name">LINDEMANS KRIEK</field>
+        <field name="country">Belgium</field>
+        <field name="capacity">25</field>
+    </doc>
+    <doc>
+        <field name="id">15</field>
+        <field name="name">CUVEE DES TROLLS</field>
+        <field name="country">Belgium</field>
+        <field name="capacity">25</field>
+    </doc>
+    <doc>
+        <field name="id">16</field>
+        <field name="name">CORSENDONK CHRISTMAS</field>
+        <field name="country">Belgium</field>
+        <field name="capacity">25</field>
+    </doc>
+    <doc>
+        <field name="id">17</field>
+        <field name="name">NOR CAL IPA</field>
+        <field name="country">USA</field>
+        <field name="capacity">65</field>
+    </doc>
+    <doc>
+        <field name="id">18</field>
+        <field name="name">HOPSICKLE IMPERIAL IPA</field>
+        <field name="country">USA</field>
+        <field name="capacity">65</field>
+    </doc>
+    <doc>
+        <field name="id">19</field>
+        <field name="name">RYAN SULLIVAN'S IMPERIAL STOUT</field>
+        <field name="country">USA</field>
+        <field name="capacity">65</field>
+    </doc>
+    <doc>
+        <field name="id">20</field>
+        <field name="name">ALASKAN SMOKED PORTER</field>
+        <field name="country">USA</field>
+        <field name="capacity">65</field>
+    </doc>
+    <doc>
+        <field name="id">21</field>
+        <field name="name">PAYBACK PORTER</field>
+        <field name="country">USA</field>
+        <field name="capacity">65</field>
+    </doc>
+    <doc>
+        <field name="id">22</field>
+        <field name="name">OLD GODFATHER BARLEYWINE</field>
+        <field name="country">USA</field>
+        <field name="capacity">65</field>
+    </doc>
+    <doc>
+        <field name="id">23</field>
+        <field name="name">MEADOWLARK IPA</field>
+        <field name="country">USA</field>
+        <field name="capacity">65</field>
+    </doc>
+    <doc>
+        <field name="id">24</field>
+        <field name="name">BARBAPAPÀ</field>
+        <field name="country">USA</field>
+        <field name="capacity">65</field>
+    </doc>
+    <doc>
+        <field name="id">25</field>
+        <field name="name">FORTUNATE ISLANDS - GRAPEFRUIT ZEST</field>
+        <field name="country">USA</field>
+        <field name="capacity">66</field>
+    </doc>
+    <doc>
+        <field name="id">26</field>
+        <field name="name">CITY OF DEAD</field>
+        <field name="country">USA</field>
+        <field name="capacity">66</field>
+    </doc>
+    <doc>
+        <field name="id">27</field>
+        <field name="name">PUNK IPA</field>
+        <field name="country">USA</field>
+        <field name="capacity">66</field>
+    </doc>
+    <doc>
+        <field name="id">28</field>
+        <field name="name">HERCULES DOUBLE IPA</field>
+        <field name="country">USA</field>
+        <field name="capacity">35.5</field>
+    </doc>
+    <doc>
+        <field name="id">29</field>
+        <field name="name">COFFEE MILK STOUT</field>
+        <field name="country">USA</field>
+        <field name="capacity">35.5</field>
+    </doc>
+    <doc>
+        <field name="id">30</field>
+        <field name="name">BEACH BREAK IPA</field>
+        <field name="country">USA</field>
+        <field name="capacity">35.5</field>
+    </doc>
+    <doc>
+        <field name="id">31</field>
+        <field name="name">NORTH ISLAND IPA</field>
+        <field name="country">USA</field>
+        <field name="capacity">35.5</field>
+    </doc>
+    <doc>
+        <field name="id">32</field>
+        <field name="name">20TH ANNIVERSARY IMPERIAL IPA</field>
+        <field name="country">USA</field>
+        <field name="capacity">35.5</field>
+    </doc>
+    <doc>
+        <field name="id">33</field>
+        <field name="name">TITAN IPA</field>
+        <field name="country">USA</field>
+        <field name="capacity">35.5</field>
+    </doc>
+    <doc>
+        <field name="id">34</field>
+        <field name="name">CLAYMORE SCOTCH ALE</field>
+        <field name="country">USA</field>
+        <field name="capacity">35.5</field>
+    </doc>
+    <doc>
+        <field name="id">35</field>
+        <field name="name">WARPIGS SKY BURIAL BOURBON</field>
+        <field name="country">Denmark</field>
+        <field name="capacity">37.5</field>
+    </doc>
+    <doc>
+        <field name="id">36</field>
+        <field name="name">BIÈRE DE MARS</field>
+        <field name="country">USA</field>
+        <field name="capacity">37.5</field>
+    </doc>
+    <doc>
+        <field name="id">37</field>
+        <field name="name">BIÈRE DE MARS</field>
+        <field name="country">USA</field>
+        <field name="capacity">37.5</field>
+    </doc>
+    <doc>
+        <field name="id">38</field>
+        <field name="name">LOST ABBEY TRACK 10</field>
+        <field name="country">USA</field>
+        <field name="capacity">37.5</field>
+    </doc>
+    <doc>
+        <field name="id">39</field>
+        <field name="name">OLD FASHIONED</field>
+        <field name="country">USA</field>
+        <field name="capacity">37.5</field>
+    </doc>
+    <doc>
+        <field name="id">40</field>
+        <field name="name">TEMPUS PROJECT - BROSÈ</field>
+        <field name="country">UK</field>
+        <field name="capacity">37.5</field>
+    </doc>
+    <doc>
+        <field name="id">41</field>
+        <field name="name">WEIHENSTEPHANER VITUS</field>
+        <field name="country">Germany</field>
+        <field name="capacity">50</field>
+    </doc>
+    <doc>
+        <field name="id">42</field>
+        <field name="name">WEIHENSTEPHANER HEFEWEISSBIER</field>
+        <field name="country">Germany</field>
+        <field name="capacity">50</field>
+    </doc>
+    <doc>
+        <field name="id">43</field>
+        <field name="name">ANDECHS BERGBOCK HELL</field>
+        <field name="country">Germany</field>
+        <field name="capacity">50</field>
+    </doc>
+    <doc>
+        <field name="id">44</field>
+        <field name="name">WEIHENSTEPHANER HEFEWEISSBIER DUNKEL</field>
+        <field name="country">Germany</field>
+        <field name="capacity">50</field>
+    </doc>
+    <doc>
+        <field name="id">45</field>
+        <field name="name">ANDECHS VOLLBIER HELL</field>
+        <field name="country">Germany</field>
+        <field name="capacity">50</field>
+    </doc>
+    <doc>
+        <field name="id">46</field>
+        <field name="name">ANDECHS WEISSBIER HELL</field>
+        <field name="country">Germany</field>
+        <field name="capacity">50</field>
+    </doc>
+    <doc>
+        <field name="id">47</field>
+        <field name="name">CHERRY GO LIGHTLY</field>
+        <field name="country">USA</field>
+        <field name="capacity">50</field>
+    </doc>
+    <doc>
+        <field name="id">48</field>
+        <field name="name">PRAIRIE VOUS FRANCAIS</field>
+        <field name="country">Denmark</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">49</field>
+        <field name="name">WARPIGS OMINOUS DRIP</field>
+        <field name="country">Denmark</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">50</field>
+        <field name="name">WARPIGS CUMULUS HUMULUS</field>
+        <field name="country">Denmark</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">51</field>
+        <field name="name">WARPIGS YOU FUCKED ME UP AND I'M FURIOUS</field>
+        <field name="country">Denmark</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">52</field>
+        <field name="name">WARPIGS LAZURITE</field>
+        <field name="country">Denmark</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">53</field>
+        <field name="name">SAISON BAUDELAIRE</field>
+        <field name="country">USA</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">54</field>
+        <field name="name">HUMULUS TERREUX</field>
+        <field name="country">USA</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">55</field>
+        <field name="name">SAISON RUE</field>
+        <field name="country">USA</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">56</field>
+        <field name="name">OUDE TART</field>
+        <field name="country">USA</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">57</field>
+        <field name="name">TRADE WINDS</field>
+        <field name="country">USA</field>
+        <field name="capacity">75</field>
+    </doc>
+    <doc>
+        <field name="id">58</field>
+        <field name="name">RUEUZE</field>
+        <field name="country">USA</field>
+        <field name="capacity">75</field>
+    </doc>
+</add>

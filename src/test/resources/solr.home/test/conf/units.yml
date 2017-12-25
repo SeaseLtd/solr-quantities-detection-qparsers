@@ -1,0 +1,7 @@
+capacity:
+  variants: [cl]
+  gap: 10
+  boost: 1.3
+height:
+  variants: [cm, centimeters, mt, m, meters, mm, millimeters]
+  gap: 5

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+    <luceneMatchVersion>7.1.0</luceneMatchVersion>
+    <lib dir="${user.home}/.m2/repository/com/spaziocodice/labs/solr-quantities-detection-qparsers/1.0/" regex=".*\.jar" />
+    <dataDir>${solr.data.dir:/var/data/solr}/${solr.core.name:}</dataDir>
+    <directoryFactory name="DirectoryFactory" class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
+    <codecFactory class="solr.SchemaCodecFactory"/>
+    <schemaFactory class="ClassicIndexSchemaFactory"/>
+    <indexConfig>
+        <lockType>${solr.lock.type:native}</lockType>
+        <infoStream>true</infoStream>
+    </indexConfig>
+    <jmx />
+    <updateHandler class="solr.DirectUpdateHandler2">
+        <autoCommit>
+            <maxTime>${solr.autoCommit.maxTime:15000}</maxTime>
+            <openSearcher>false</openSearcher>
+        </autoCommit>
+        <autoSoftCommit>
+            <maxTime>${solr.autoSoftCommit.maxTime:-1}</maxTime>
+        </autoSoftCommit>
+    </updateHandler>
+    <query>
+        <maxBooleanClauses>1024</maxBooleanClauses>
+        <filterCache class="solr.FastLRUCache" size="512" initialSize="512" autowarmCount="0"/>
+        <queryResultCache class="solr.LRUCache" size="512" initialSize="512" autowarmCount="0"/>
+        <documentCache class="solr.LRUCache" size="512" initialSize="512" autowarmCount="0"/>
+        <cache
+                name="perSegFilter"
+                class="solr.search.LRUCache"
+                size="10"
+                initialSize="0"
+                autowarmCount="10"
+                regenerator="solr.NoOpRegenerator" />
+        <enableLazyFieldLoading>true</enableLazyFieldLoading>
+        <queryResultWindowSize>20</queryResultWindowSize>
+        <queryResultMaxDocsCached>200</queryResultMaxDocsCached>
+        <useColdSearcher>false</useColdSearcher>
+        <maxWarmingSearchers>2</maxWarmingSearchers>
+    </query>
+
+    <requestDispatcher handleSelect="true" >
+        <requestParsers
+                enableRemoteStreaming="true"
+                multipartUploadLimitInKB="2048000"
+                formdataUploadLimitInKB="2048"
+                addHttpRequestToContext="false"/>
+        <httpCaching never304="true" />
+    </requestDispatcher>
+
+    <requestHandler name="/try" class="solr.SearchHandler" default="true">
+        <lst name="invariants">
+            <str name="defType">qty</str>
+            <str name="df">product_name</str>
+        </lst>
+        <lst name="defaults">
+            <str name="qf">
+                name
+            </str>
+            <str name="pf">
+                name^10
+            </str>
+            <str name="bq">{!bqty v=$q}</str>
+            <str name="boost">{!bfqty v=$q}</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler name="/query" class="solr.SearchHandler">
+        <lst name="defaults">
+            <str name="echoParams">none</str>
+            <str name="q">*:*</str>
+            <str name="df">product_name</str>
+        </lst>
+    </requestHandler>
+
+    <queryParser name="qty" class="com.spaziocodice.labs.solr.qty.QuantityDetectionQParserPlugin"/>
+    <queryParser name="bqty" class="com.spaziocodice.labs.solr.qty.QuantityDetectionBQParserPlugin"/>
+    <queryParser name="bfqty" class="com.spaziocodice.labs.solr.qty.QuantityDetectionBFParserPlugin"/>
+
+    <admin>
+        <defaultQuery>*:*</defaultQuery>
+    </admin>
+</config>
