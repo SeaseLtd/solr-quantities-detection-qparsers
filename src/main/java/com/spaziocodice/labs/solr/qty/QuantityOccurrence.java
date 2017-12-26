@@ -32,7 +32,7 @@ public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
         this.indexOfUnit = indexOfUnit;
     }
 
-    static QuantityOccurrence createNew(final Number amount, final String unit, final String fieldName, final int indexOfUnit, final int indexOfAmount) {
+    static QuantityOccurrence newOccurrence(final Number amount, final String unit, final String fieldName, final int indexOfUnit, final int indexOfAmount) {
         return new QuantityOccurrence(amount, unit, fieldName, indexOfAmount, indexOfUnit);
     }
 

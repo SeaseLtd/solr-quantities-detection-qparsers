@@ -7,6 +7,12 @@ import org.apache.solr.search.QParserPlugin;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * Supertype layer for all quantities-detection query parser.
+ *
+ * @author agazzarini
+ * @since 1.0
+ */
 public class QuantityDetectionQParserPlugin extends QuantityDetector {
     private ExtendedDismaxQParserPlugin qParser;
 

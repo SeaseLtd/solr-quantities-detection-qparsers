@@ -3,10 +3,7 @@ package com.spaziocodice.labs.solr.qty;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.analysis.util.ResourceLoaderAware;
 import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
-import org.apache.solr.search.ExtendedDismaxQParserPlugin;
-import org.apache.solr.search.LuceneQParserPlugin;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.slf4j.Logger;
@@ -30,11 +27,34 @@ import static java.util.stream.Collectors.toMap;
  * @since 1.0
  */
 public abstract class QuantityDetector extends QParserPlugin implements ResourceLoaderAware {
+    /**
+     *
+     */
     interface QueryBuilder {
+        /**
+         * A new quantity (i.e. amount + unit) has been detected.
+         * When this event occurs, the builder is notified through this callback
+         * with a {@link QuantityOccurrence} instance which contains all information
+         * (i.e. amount, unit, offsets) about the detected quantity.
+         *
+         * @param occurrence the occurrence encapsulating the quantity detection.
+         */
         void newQuantityDetected(final QuantityOccurrence occurrence);
 
+        /**
+         * Returns the built query, that is, the product of this builder.
+         *
+         * @return the built query, that is, the product of this builder.
+         */
         String product();
 
+        /**
+         * Returns the internal {@link QParserPlugin} that will be used for
+         * parsing the built query.
+         *
+         * @return the internal {@link QParserPlugin} that will be used for
+         * parsing the built query.
+         */
         QParserPlugin qparserPlugin();
     }
 
@@ -58,7 +78,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     }
 
     @Override
-    public QParser createParser(final String qstr, final SolrParams localParams, final SolrParams params, final SolrQueryRequest req) {
+    public final QParser createParser(final String qstr, final SolrParams localParams, final SolrParams params, final SolrQueryRequest req) {
         if (qstr == null) {
             return null;
         }
@@ -70,16 +90,16 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                 .entrySet()
                 .forEach(entry -> {
                     for (final Integer indexOfUnit : indexesOf(query, entry.getKey())) {
-                        final int indexOfAmount = previousWhitespaceIndex(query, indexOfUnit);
-                        if (indexOfAmount != -1) {
-                            final int amount = Integer.parseInt(query.substring(indexOfAmount, indexOfUnit).trim());
+                        final int amountStartOffset = startIndexOfAmount(query, indexOfUnit);
+                        if (amountStartOffset != -1) {
+                            final int amount = Integer.parseInt(query.substring(amountStartOffset, indexOfUnit).trim());
                             builder.newQuantityDetected(
-                                    QuantityOccurrence.createNew(
+                                    QuantityOccurrence.newOccurrence(
                                             amount,
                                             entry.getKey(),
                                             entry.getValue(),
                                             indexOfUnit,
-                                            indexOfAmount));
+                                            amountStartOffset));
                         }
                     }
                 });
@@ -90,10 +110,23 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         return builder.qparserPlugin().createParser(product, localParams, params, req);
     }
 
-    abstract QueryBuilder queryBuilder(final StringBuilder query);
+    /**
+     * Returns the query builder instance associated with this detector.
+     *
+     * @param query the input query (as a {@link StringBuilder}.
+     * @return the query builder instance associated with this detector.
+     */
+    abstract QueryBuilder queryBuilder(StringBuilder query);
 
-    int previousWhitespaceIndex(final StringBuilder q, final int unitIndex) {
-        if (unitIndex == 0) {
+    /**
+     * Internal method for detecting the start offset of the (potential) detected quantity.
+     *
+     * @param q the input query buffer.
+     * @param unitIndex the start offset of the unit.
+     * @return the start offset of the (potential) detected quantity, -1 in case the detection is not a quantity.
+     */
+    int startIndexOfAmount(final StringBuilder q, final int unitIndex) {
+        if (unitIndex <= 0) {
             return -1;
         }
 
@@ -109,20 +142,16 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                 atLeastOneDigitHasBeenMet = true;
             }
 
-            if (i == 0) {
-                if (atLeastOneDigitHasBeenMet) {
-                    return i;
-                } else {
-                    return -1;
-                }
-            }
-
             if (Character.isWhitespace(q.charAt(i))) {
-                if (spaceBetweenUnitsAndMeasureMet) {
-                    return i;
+                if (spaceBetweenUnitsAndMeasureMet && atLeastOneDigitHasBeenMet) {
+                    return i + 1;
                 } else {
                     spaceBetweenUnitsAndMeasureMet = true;
                 }
+            }
+
+            if (i == 0 && atLeastOneDigitHasBeenMet) {
+                return i;
             }
         }
         return i;
@@ -136,11 +165,25 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @return a list containing the all start indexes of the given variant within the query.
      */
     final List<Integer> indexesOf(final StringBuilder query, final String variant) {
+        if (query.length() <= 2) {
+            return Collections.emptyList();
+        }
+
+        if (query.charAt(0) != ' ') {
+            query.insert(0, ' ');
+        }
+
+        if (query.charAt(query.length() - 1) != ' ') {
+            query.append(" ");
+        }
         final List<Integer> indexes = new ArrayList<>();
         int indexOf = -1;
-        final String searchKey = variant + " ";
+        final String searchKey = variant;
         while ( (indexOf = query.indexOf(searchKey, indexOf + 1)) != -1) {
-            indexes.add(indexOf);
+            if ((indexOf == 0 || !Character.isLetter(query.charAt(indexOf - 1)))
+                    && !Character.isLetterOrDigit(query.charAt(indexOf + variant.length()))) {
+                indexes.add(indexOf);
+            }
         }
         return indexes;
     }
