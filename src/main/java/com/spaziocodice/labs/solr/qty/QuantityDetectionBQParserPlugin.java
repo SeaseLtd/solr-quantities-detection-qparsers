@@ -66,6 +66,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
                 .append(leftBound)
                 .append(" TO ")
                 .append(occurrence.amount.intValue() + distance)
-                .append("]");
+                .append("]")
+                .append(" ");
     }
 }

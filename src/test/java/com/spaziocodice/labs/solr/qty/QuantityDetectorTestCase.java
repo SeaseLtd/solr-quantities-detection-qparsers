@@ -3,11 +3,13 @@ package com.spaziocodice.labs.solr.qty;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.IntStream.range;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * {@link QuantityDetector} test case.
@@ -128,18 +130,19 @@ public class QuantityDetectorTestCase {
                 .map(StringBuilder::new)
                 .forEach(query ->
                             assertEquals(
-                                query.toString(),
+                                ">" + query.toString() + "<",
                                 -1,
                                 cut.startIndexOfAmount(query, query.indexOf(unit))));
     }
 
     @Test
-    public void quantityAtTheVeryBeginning() {
+    public void quantities() {
         final String [] queries = {
                 "100lt",
                 " 100 lt",
                 "  100 lt",
-                "   100 lt"
+                "   100 lt",
+                "a   100lt"
         };
         range(0, queries.length)
                 .forEach(index -> {
@@ -149,5 +152,21 @@ public class QuantityDetectorTestCase {
                                 index,
                                 cut.startIndexOfAmount(query, query.indexOf(unit)));
                 });
+    }
+
+    @Test
+    public void noGap() {
+        cut.configuration = new HashMap<>();
+        assertFalse(cut.gap(unit).isPresent());
+    }
+
+    @Test
+    public void gap() {
+        cut.configuration = new HashMap<>();
+        final Map<String, Integer> gap = new HashMap<>();
+        gap.put("gap", 3);
+        cut.configuration.put(unit, gap);
+
+        assertEquals(3, cut.gap(unit).get());
     }
 }

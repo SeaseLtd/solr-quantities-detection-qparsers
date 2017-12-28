@@ -60,8 +60,8 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected Map<String, String> variantsMap;
-    protected Map<String, Object> configuration;
+    Map<String, String> variantsMap;
+    Map<String, Object> configuration;
 
     /**
      * Completes the initialization of this component by loading the provided configuration.
@@ -74,7 +74,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         this.variantsMap = configuration.entrySet()
                 .stream()
                 .flatMap(entry -> unitVariants(entry).stream().map(variant -> newEntry(variant, entry.getKey())))
-                .collect(toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override
@@ -86,28 +86,31 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         final StringBuilder query = new StringBuilder(" ").append(qstr.toLowerCase()).append(" ");
         final QueryBuilder builder = queryBuilder(query);
 
-        variantsMap
-                .entrySet()
-                .forEach(entry -> {
-                    for (final Integer indexOfUnit : indexesOf(query, entry.getKey())) {
-                        final int amountStartOffset = startIndexOfAmount(query, indexOfUnit);
-                        if (amountStartOffset != -1) {
-                            final int amount = Integer.parseInt(query.substring(amountStartOffset, indexOfUnit).trim());
-                            builder.newQuantityDetected(
-                                    QuantityOccurrence.newOccurrence(
-                                            amount,
-                                            entry.getKey(),
-                                            entry.getValue(),
-                                            indexOfUnit,
-                                            amountStartOffset));
-                        }
-                    }
-                });
-
-        final String product = builder.product();
+        final String product = buildQuery(builder, query);
         debug(qstr, " => ", product);
 
         return builder.qparserPlugin().createParser(product, localParams, params, req);
+    }
+
+    String buildQuery(final QueryBuilder builder, final StringBuilder query) {
+        variantsMap
+              .forEach((variant, fieldName) -> {
+                  for (final Integer unitOffset : indexesOf(query, variant)) {
+                      final int amountOffset = startIndexOfAmount(query, unitOffset);
+                      // TODO: use Optional instead
+                      if (amountOffset != -1) {
+                          final int amount = Integer.parseInt(query.substring(amountOffset, unitOffset).trim());
+                          builder.newQuantityDetected(
+                                  QuantityOccurrence.newOccurrence(
+                                          amount,
+                                          variant,
+                                          fieldName,
+                                          unitOffset,
+                                          amountOffset));
+                      }
+                  }
+              });
+        return builder.product().trim();
     }
 
     /**
@@ -143,7 +146,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
             }
 
             if (Character.isWhitespace(q.charAt(i))) {
-                if (spaceBetweenUnitsAndMeasureMet && atLeastOneDigitHasBeenMet) {
+                if (atLeastOneDigitHasBeenMet) {
                     return i + 1;
                 } else {
                     spaceBetweenUnitsAndMeasureMet = true;
@@ -176,10 +179,10 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         if (query.charAt(query.length() - 1) != ' ') {
             query.append(" ");
         }
+
         final List<Integer> indexes = new ArrayList<>();
         int indexOf = -1;
-        final String searchKey = variant;
-        while ( (indexOf = query.indexOf(searchKey, indexOf + 1)) != -1) {
+        while ( (indexOf = query.indexOf(variant, indexOf + 1)) != -1) {
             if ((indexOf == 0 || !Character.isLetter(query.charAt(indexOf - 1)))
                     && !Character.isLetterOrDigit(query.charAt(indexOf + variant.length()))) {
                 indexes.add(indexOf);
@@ -195,13 +198,19 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @return a map representing the configuration associated with this component.
      * @throws IOException in case of I/O failure (e.g. reading the conf file)
      */
-    private Map<String, Object> configuration(final ResourceLoader loader) throws IOException {
+    Map<String, Object> configuration(final ResourceLoader loader) throws IOException {
         try (final InputStream inputStream = loader.openResource("units.yml")) {
             final Yaml yaml = new Yaml();
             return (Map<String, Object>) yaml.load(inputStream);
         }
     }
 
+    /**
+     * Returns the gap associated with the given field name.
+     *
+     * @param fieldName the field name.
+     * @return the gap associated with the given field name.
+     */
     final Optional<Number> gap(final String fieldName) {
         final Map<String, Object> fieldConfiguration = (Map<String, Object>) configuration.get(fieldName);
         return fieldConfiguration != null
@@ -217,6 +226,13 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         return new SimpleEntry(key, value);
     }
 
+    /**
+     * Logs out a (3-parts) message in DEBUG level.
+     *
+     * @param part1 the first message part.
+     * @param part2 the second message part.
+     * @param part3 the third message part.
+     */
     protected void debug(final String part1, final String part2, final String part3) {
         if (logger.isDebugEnabled()) {
             logger.debug(part1 + part2 + part3);

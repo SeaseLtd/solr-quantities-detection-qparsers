@@ -5,8 +5,8 @@ package com.spaziocodice.labs.solr.qty;
  *
  * @author agazzarini
  * @since 1.0
- * @see https://martinfowler.com/tags/analysis%20patterns.html
- * @see http://www.dsc.ufcg.edu.br/~jacques/cursos/map/recursos/fowler-ap/Analysis%20Pattern%20Quantity.htm
+ * @see <a href="https://martinfowler.com/tags/analysis%20patterns.html">Anaysis Patterns</a>
+ * @see <a href="http://www.dsc.ufcg.edu.br/~jacques/cursos/map/recursos/fowler-ap/Analysis%20Pattern%20Quantity.htm>Quantity Pattern</a>
  */
 public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
     final Number amount;
