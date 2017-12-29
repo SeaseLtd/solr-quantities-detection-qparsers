@@ -3,7 +3,6 @@ package com.spaziocodice.labs.solr.qty;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.FunctionQParserPlugin;
-import org.apache.solr.search.LuceneQParserPlugin;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -88,9 +87,11 @@ public class QuantityDetectionBFParserTestCase {
 
         data.stream()
                 .map(StringBuilder::new)
-                .forEach(query -> {
-                    assertEquals("recip(abs(sub(height, 100)),1,1000,1000)", cut.buildQuery(cut.queryBuilder(query), query));
-                });
+                .forEach(
+                        query ->
+                            assertEquals(
+                                    "recip(abs(sub(height, 100)),1,1000,1000)",
+                                    cut.buildQuery(cut.queryBuilder(query), query)));
     }
 
     @Test
@@ -104,9 +105,11 @@ public class QuantityDetectionBFParserTestCase {
 
         data.stream()
                 .map(StringBuilder::new)
-                .forEach(query -> {
-                    assertEquals("recip(abs(sub(capacity, 100)),1,1000,1000)", cut.buildQuery(cut.queryBuilder(query), query));
-                });
+                .forEach(
+                        query ->
+                            assertEquals(
+                                    "recip(abs(sub(capacity, 100)),1,1000,1000)",
+                                    cut.buildQuery(cut.queryBuilder(query), query)));
     }
 
 

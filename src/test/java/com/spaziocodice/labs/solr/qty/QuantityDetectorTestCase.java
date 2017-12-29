@@ -9,7 +9,8 @@ import java.util.Map;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.IntStream.range;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * {@link QuantityDetector} test case.

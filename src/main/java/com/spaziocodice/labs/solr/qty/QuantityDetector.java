@@ -12,8 +12,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.*;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -87,7 +87,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         final QueryBuilder builder = queryBuilder(query);
 
         final String product = buildQuery(builder, query);
-        debug(qstr, " => ", product);
+        debug(qstr, product);
 
         return builder.qparserPlugin().createParser(product, localParams, params, req);
     }
@@ -133,24 +133,20 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
             return -1;
         }
 
-        boolean spaceBetweenUnitsAndMeasureMet = false;
         boolean atLeastOneDigitHasBeenMet = false;
         int i = unitIndex - 1;
         for (; i >= 0; i--) {
-            if (Character.isLetter(q.charAt(i))) {
+            final char ch = q.charAt(i);
+            if (Character.isLetter(ch)) {
                 return -1;
             }
 
-            if (Character.isDigit(q.charAt(i))) {
+            if (Character.isDigit(ch)) {
                 atLeastOneDigitHasBeenMet = true;
             }
 
-            if (Character.isWhitespace(q.charAt(i))) {
-                if (atLeastOneDigitHasBeenMet) {
+            if (Character.isWhitespace(ch) && atLeastOneDigitHasBeenMet) {
                     return i + 1;
-                } else {
-                    spaceBetweenUnitsAndMeasureMet = true;
-                }
             }
 
             if (i == 0 && atLeastOneDigitHasBeenMet) {
@@ -227,15 +223,14 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     }
 
     /**
-     * Logs out a (3-parts) message in DEBUG level.
+     * Logs out a (2-parts) message in DEBUG level.
      *
      * @param part1 the first message part.
      * @param part2 the second message part.
-     * @param part3 the third message part.
      */
-    protected void debug(final String part1, final String part2, final String part3) {
+    protected void debug(final String part1, final String part2) {
         if (logger.isDebugEnabled()) {
-            logger.debug(part1 + part2 + part3);
+            logger.debug(part1 + " => " + part2);
         }
     }
 }

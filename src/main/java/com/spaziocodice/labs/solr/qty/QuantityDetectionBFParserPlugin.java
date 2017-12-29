@@ -39,5 +39,4 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
             }
         };
     }
-
 }

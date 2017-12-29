@@ -34,9 +34,8 @@ public class QuantityDetectionQParserPlugin extends QuantityDetector {
 
             @Override
             public String product() {
-                occurrences.forEach(occurrence -> {
-                    query.delete(occurrence.indexOfAmount, occurrence.indexOfUnit + occurrence.unit.length());
-                });
+                occurrences.forEach(occurrence ->
+                        query.delete(occurrence.indexOfAmount, occurrence.indexOfUnit + occurrence.unit.length()));
                 final String result = query.toString().trim();
                 return result.isEmpty() ? "*:*" : result;
             }

@@ -87,9 +87,11 @@ public class QuantityDetectionBQParserTestCase {
 
         data.stream()
                 .map(StringBuilder::new)
-                .forEach(query -> {
-                    assertEquals("height:100 height:[90 TO 110]", cut.buildQuery(cut.queryBuilder(query), query));
-                });
+                .forEach(
+                        query ->
+                            assertEquals(
+                            "height:100 height:[90 TO 110]",
+                            cut.buildQuery(cut.queryBuilder(query), query)));
     }
 
     @Test
@@ -103,9 +105,11 @@ public class QuantityDetectionBQParserTestCase {
 
         data.stream()
                 .map(StringBuilder::new)
-                .forEach(query -> {
-                    assertEquals("capacity:100", cut.buildQuery(cut.queryBuilder(query), query));
-                });
+                .forEach(
+                        query ->
+                            assertEquals(
+                                    "capacity:100",
+                                    cut.buildQuery(cut.queryBuilder(query), query)));
     }
 
 
