@@ -1,18 +1,19 @@
 package com.spaziocodice.labs.solr.qty;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.LuceneQParserPlugin;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.spaziocodice.labs.TestData.CM;
-import static com.spaziocodice.labs.TestData.LT;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static junit.framework.TestCase.assertSame;
@@ -32,18 +33,8 @@ public class QuantityDetectionBQParserTestCase {
     public void setUp() throws Exception {
         cut = new QuantityDetectionBQParserPlugin() {
             @Override
-            Map<String, Object> configuration(final ResourceLoader loader) {
-                final Map<String, Object> configuration = new HashMap<>();
-                final Map<String, Object> capacityConfiguration = new HashMap<>();
-                capacityConfiguration.put("variants", Collections.singletonList(LT));
-                configuration.put("capacity", capacityConfiguration);
-
-                final Map<String, Object> heightConfiguration = new HashMap<>();
-                heightConfiguration.put("variants", Collections.singletonList(CM));
-                heightConfiguration.put("gap", 10);
-                configuration.put("height", heightConfiguration);
-
-                return configuration;
+            JsonNode configuration(final ResourceLoader loader) throws IOException {
+                return new ObjectMapper().readTree(new File("src/test/resources/bq_units.json"));
             }
         };
 
@@ -77,7 +68,7 @@ public class QuantityDetectionBQParserTestCase {
     }
 
     @Test
-    public void oneQuantityWithoutGap() {
+    public void oneQuantityWithGap() {
         final List<String> data = asList(
                 "There a 100cm quantity here",
                 "There a 100 cm quantity here",
@@ -95,7 +86,7 @@ public class QuantityDetectionBQParserTestCase {
     }
 
     @Test
-    public void oneQuantityWithGap() {
+    public void oneQuantityWithoutGap() {
         final List<String> data = asList(
                 "There a 100lt quantity here",
                 "There a 100 lt quantity here",

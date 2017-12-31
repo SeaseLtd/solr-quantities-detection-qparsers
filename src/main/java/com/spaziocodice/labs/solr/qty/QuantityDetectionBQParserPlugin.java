@@ -21,7 +21,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             @Override
             public void newQuantityDetected(final QuantityOccurrence occurrence) {
                 addLiteralQuery(buffer, occurrence);
-                gap(occurrence.fieldName).ifPresent(gap -> addRangeQuery(buffer, occurrence, gap.intValue()));
+                gap(occurrence.fieldName).ifPresent(gap -> addRangeQuery(buffer, occurrence, gap.value().intValue()));
             }
 
             @Override
@@ -43,7 +43,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
      * @param occurrence the quantity instance occurrence.
      * @return the same query buffer with the new filter definition.
      */
-    final StringBuilder addLiteralQuery(final StringBuilder builder, final QuantityOccurrence occurrence) {
+    private StringBuilder addLiteralQuery(final StringBuilder builder, final QuantityOccurrence occurrence) {
         return builder
                 .append(occurrence.fieldName)
                 .append(":")
@@ -58,7 +58,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
      * @param occurrence the quantity instance occurrence.
      * @return the same query buffer with the new filter definition.
      */
-    final StringBuilder addRangeQuery(final StringBuilder builder, final QuantityOccurrence occurrence, final int distance) {
+    private StringBuilder addRangeQuery(final StringBuilder builder, final QuantityOccurrence occurrence, final int distance) {
         final int leftBound = occurrence.amount.intValue() >= distance ? occurrence.amount.intValue() - distance : 0;
         return builder
                 .append(occurrence.fieldName)

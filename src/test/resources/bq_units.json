@@ -1,0 +1,21 @@
+{
+  "units" : [
+    {
+      "capacity": {
+        "unit": "lt"
+      }
+    },
+    {
+      "height": {
+        "unit": "cm",
+        "variants": {
+          "cm": ["centimeters"]
+        },
+        "gap": {
+          "value": 10,
+          "mode": "MAX"
+        }
+      }
+    }
+  ]
+}

@@ -1,11 +1,15 @@
 package com.spaziocodice.labs.solr.qty;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.ExtendedDismaxQParserPlugin;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -30,12 +34,8 @@ public class QuantityDetectionQParserTestCase {
     public void setUp() throws Exception {
         cut = new QuantityDetectionQParserPlugin() {
             @Override
-            Map<String, Object> configuration(final ResourceLoader loader) {
-                final Map<String, Object> configuration = new HashMap<>();
-                final Map<String, List<String>> variants = new HashMap<>();
-                variants.put("variants", Collections.singletonList(LT));
-                configuration.put("capacity", variants);
-                return configuration;
+            JsonNode configuration(final ResourceLoader loader) throws IOException {
+                return new ObjectMapper().readTree(new File("src/test/resources/q_units.json"));
             }
         };
 

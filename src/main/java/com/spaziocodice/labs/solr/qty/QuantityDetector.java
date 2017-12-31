@@ -1,5 +1,8 @@
 package com.spaziocodice.labs.solr.qty;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spaziocodice.labs.solr.qty.cfg.Unit;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.analysis.util.ResourceLoaderAware;
 import org.apache.solr.common.params.SolrParams;
@@ -8,14 +11,15 @@ import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.StreamSupport.stream;
 
 /**
  * Supertype layer for detecting quantities in a query string.
@@ -58,10 +62,10 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         QParserPlugin qparserPlugin();
     }
 
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    Map<String, String> variantsMap;
-    Map<String, Object> configuration;
+    private Map<String, String> variantsMap;
+    private List<Unit> units;
 
     /**
      * Completes the initialization of this component by loading the provided configuration.
@@ -70,11 +74,19 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @throws IOException in case of I/O failure (e.g. reading the conf file)
      */
     public void inform(final ResourceLoader loader) throws IOException {
-        this.configuration = configuration(loader);
-        this.variantsMap = configuration.entrySet()
-                .stream()
-                .flatMap(entry -> unitVariants(entry).stream().map(variant -> newEntry(variant, entry.getKey())))
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+        units = units(configuration(loader));
+        variantsMap = units.stream()
+                .flatMap(unit -> {
+                    final Set<String> forms = new HashSet<>();
+                    forms.add(unit.name());
+
+                    unit.variants()
+                            .forEach(variant -> {
+                                forms.add(variant.refName());
+                                forms.addAll(variant.forms());
+                            });
+                    return forms.stream().map(form -> new SimpleEntry<>(form, unit.fieldName()));})
+                .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue));
     }
 
     @Override
@@ -188,38 +200,51 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     }
 
     /**
-     * Returns a map representing the configuration associated with this component.
-     *
-     * @param loader the Solr resource loader.
-     * @return a map representing the configuration associated with this component.
-     * @throws IOException in case of I/O failure (e.g. reading the conf file)
-     */
-    Map<String, Object> configuration(final ResourceLoader loader) throws IOException {
-        try (final InputStream inputStream = loader.openResource("units.yml")) {
-            final Yaml yaml = new Yaml();
-            return (Map<String, Object>) yaml.load(inputStream);
-        }
-    }
-
-    /**
      * Returns the gap associated with the given field name.
      *
      * @param fieldName the field name.
      * @return the gap associated with the given field name.
      */
-    final Optional<Number> gap(final String fieldName) {
-        final Map<String, Object> fieldConfiguration = (Map<String, Object>) configuration.get(fieldName);
-        return fieldConfiguration != null
-                ? Optional.ofNullable((Number)fieldConfiguration.get("gap"))
-                : Optional.empty();
+    final Optional<Unit.Gap> gap(final String fieldName) {
+        final Optional<Unit> unit = unit(fieldName);
+        return unit.isPresent() ? unit.get().gap() : Optional.empty();
     }
 
-    private List<String> unitVariants(final Map.Entry<String, Object> unitEntry) {
-        return (List<String>)((Map<String, Object>)unitEntry.getValue()).getOrDefault("variants", Collections.emptyList());
+    private Optional<Unit> unit(final String fieldName) {
+        return units.stream()
+                .filter(unit -> unit.fieldName().equals(fieldName))
+                .findFirst();
     }
 
-    private Map.Entry<String, String> newEntry(final String key, final String value) {
-        return new SimpleEntry(key, value);
+    private List<Unit> units(final JsonNode configuration) {
+        return stream(configuration.get("units").spliterator(), false)
+                .map(unitNode -> {
+                    final String fieldName =  unitNode.fieldNames().next();
+                    final JsonNode unitCfg = unitNode.get(fieldName);
+
+                    final String unitName = unitCfg.get("unit").asText();
+
+                    final Unit unit = new Unit(
+                            fieldName,
+                            unitName, unitCfg.hasNonNull("boost") ? unitCfg.get("boost").floatValue() : 1f);
+
+                    ofNullable(unitCfg.get("gap"))
+                            .ifPresent(gap ->
+                                unit.setGap(
+                                        gap.get("value").floatValue(),
+                                        gap.get("mode").asText("PIVOT")));
+
+                    ofNullable(unitCfg.get("variants"))
+                            .ifPresent(variants ->
+                                variants.fieldNames()
+                                        .forEachRemaining(mainFormName ->
+                                            unit.addVariant(
+                                                    mainFormName,
+                                                    stream(variants.get(mainFormName).spliterator(), false)
+                                                            .map(JsonNode::asText)
+                                                            .collect(toList()))));
+                    return unit;
+                }).collect(toList());
     }
 
     /**
@@ -228,9 +253,21 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @param part1 the first message part.
      * @param part2 the second message part.
      */
-    protected void debug(final String part1, final String part2) {
+    private void debug(final String part1, final String part2) {
         if (logger.isDebugEnabled()) {
             logger.debug(part1 + " => " + part2);
         }
     }
+
+    /**
+     * Loads the configuration associated with this component.
+     *
+     * @param loader the Solr resource loader.
+     * @return the configuration associated with this component.
+     * @throws IOException in case of I/O failure (e.g. configuration file not found).
+     */
+    JsonNode configuration(final ResourceLoader loader) throws IOException {
+        return new ObjectMapper().readTree(loader.openResource("units.json"));
+    }
+
 }
