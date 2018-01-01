@@ -107,6 +107,13 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         return builder.qparserPlugin().createParser(product, localParams, params, req);
     }
 
+    /**
+     * Executes the build query process.
+     *
+     * @param builder the query builder, which depends on the specific qparser.
+     * @param query the input query (as a {@link StringBuilder}).
+     * @return the built query, according with the rules of the query builder associated with the qparser.
+     */
     String buildQuery(final QueryBuilder builder, final StringBuilder query) {
         variantsMap
           .forEach((variant, fieldName) ->
