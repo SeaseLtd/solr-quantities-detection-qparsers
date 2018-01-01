@@ -30,7 +30,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             @Override
             public void newQuantityDetected(final Unit unit, final QuantityOccurrence occurrence) {
                 addLiteralQuery(unit, buffer, occurrence);
-                gap(occurrence.fieldName).ifPresent(gap -> addRangeQuery(buffer, occurrence, gap.value().intValue()));
+                gap(occurrence.fieldName).ifPresent(gap -> addRangeQuery(gap, buffer, occurrence));
             }
 
             @Override
@@ -66,18 +66,50 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
     /**
      * Adds a new boolean, range filter to the result of this builder.
      *
+     * @param gap the gap associated with the detected quantity occurrence.
      * @param builder the query buffer.
      * @param occurrence the quantity instance occurrence.
      * @return the same query buffer with the new filter definition.
      */
-    private StringBuilder addRangeQuery(final StringBuilder builder, final QuantityOccurrence occurrence, final int distance) {
-        final int leftBound = occurrence.amount.intValue() >= distance ? occurrence.amount.intValue() - distance : 0;
+    private StringBuilder addRangeQuery(
+            final Unit.Gap gap,
+            final StringBuilder builder,
+            final QuantityOccurrence occurrence) {
+        int leftBound = 0;
+        int rightBound = 0;
+
+        switch (gap.mode()) {
+            case MAX:
+                leftBound =
+                        gap.value() != null
+                            ? occurrence.amount.intValue() >= gap.value().intValue()
+                                ? occurrence.amount.intValue() - gap.value().intValue()
+                                : 0
+                            : 0;
+                rightBound = occurrence.amount.intValue();
+                break;
+            case MIN:
+                leftBound = occurrence.amount.intValue();
+                rightBound =
+                        gap.value() != null
+                                ? occurrence.amount.intValue() + gap.value().intValue()
+                                : -1;
+                break;
+            default:
+                final int distance = gap.value().intValue();
+                leftBound = occurrence.amount.intValue() >= distance
+                                ? occurrence.amount.intValue() - distance
+                                : 0;
+                rightBound = occurrence.amount.intValue() + distance;
+                break;
+        }
+
         return builder
                 .append(occurrence.fieldName)
                 .append(":[")
                 .append(leftBound)
                 .append(" TO ")
-                .append(occurrence.amount.intValue() + distance)
+                .append(rightBound != -1 ? rightBound : "*")
                 .append("]")
                 .append(" ");
     }

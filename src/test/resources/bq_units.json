@@ -35,6 +35,40 @@
         },
         "gap": {
           "value": 10,
+          "mode": "PIVOT"
+        }
+      }
+    },
+    {
+      "price_min_with_value": {
+        "unit": "euro",
+        "gap": {
+          "value": 10,
+          "mode": "MIN"
+        }
+      }
+    },
+    {
+      "price_max_with_value": {
+        "unit": "dollars",
+        "gap": {
+          "value": 50,
+          "mode": "MAX"
+        }
+      }
+    },
+    {
+      "price_min_without_value": {
+        "unit": "francs",
+        "gap": {
+          "mode": "MIN"
+        }
+      }
+    },
+    {
+      "price_max_without_value": {
+        "unit": "cad",
+        "gap": {
           "mode": "MAX"
         }
       }
