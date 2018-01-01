@@ -154,6 +154,77 @@ public class QuantityDetectionBQParserTestCase {
                                     cut.buildQuery(cut.queryBuilder(query), query)));
     }
 
+    @Test
+    public void maxGapModeWithValue() {
+        final List<String> data = asList(
+                "There a 100dollars quantity here",
+                "There a 100 dollars quantity here",
+                "100dollars",
+                "100 dollars",
+                "  100 dollars ");
+
+        data.stream()
+                .map(StringBuilder::new)
+                .forEach(
+                        query ->
+                                assertEquals(
+                                        "price_max_with_value:100 price_max_with_value:[50 TO 100]",
+                                        cut.buildQuery(cut.queryBuilder(query), query)));
+    }
+
+    @Test
+    public void maxGapModeWithoutValue() {
+        final List<String> data = asList(
+                "There a 100cad quantity here",
+                "There a 100 cad quantity here",
+                "100cad",
+                "100 cad",
+                "  100 cad ");
+
+        data.stream()
+                .map(StringBuilder::new)
+                .forEach(
+                        query ->
+                                assertEquals(
+                                        "price_max_without_value:100 price_max_without_value:[0 TO 100]",
+                                        cut.buildQuery(cut.queryBuilder(query), query)));
+    }
+
+    @Test
+    public void minGapModeWithValue() {
+        final List<String> data = asList(
+                "There a 100euro quantity here",
+                "There a 100 euro quantity here",
+                "100euro",
+                "100 euro",
+                "  100 euro ");
+
+        data.stream()
+                .map(StringBuilder::new)
+                .forEach(
+                        query ->
+                                assertEquals(
+                                        "price_min_with_value:100 price_min_with_value:[100 TO 110]",
+                                        cut.buildQuery(cut.queryBuilder(query), query)));
+    }
+
+    @Test
+    public void minGapModeWithoutValue() {
+        final List<String> data = asList(
+                "There a 100francs quantity here",
+                "There a 100 francs quantity here",
+                "100francs",
+                "100 francs",
+                "  100 francs ");
+
+        data.stream()
+                .map(StringBuilder::new)
+                .forEach(
+                        query ->
+                                assertEquals(
+                                        "price_min_without_value:100 price_min_without_value:[100 TO *]",
+                                        cut.buildQuery(cut.queryBuilder(query), query)));
+    }
 
     @Test
     public void multipleQuantitiesWithoutGap() {

@@ -256,7 +256,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                     ofNullable(unitCfg.get("gap"))
                             .ifPresent(gap ->
                                 unit.setGap(
-                                        gap.get("value").floatValue(),
+                                        gap.hasNonNull("value") ? gap.get("value").floatValue() : null,
                                         gap.get("mode").asText("PIVOT")));
 
                     ofNullable(unitCfg.get("variants"))
