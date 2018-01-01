@@ -1,5 +1,6 @@
 package com.spaziocodice.labs.solr.qty;
 
+import com.spaziocodice.labs.solr.qty.cfg.Unit;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.ExtendedDismaxQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
@@ -8,7 +9,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
- * Supertype layer for all quantities-detection query parser.
+ * A {@link QParserPlugin} which detects and removes all quantities from the input query string.
  *
  * @author agazzarini
  * @since 1.0
@@ -28,7 +29,7 @@ public class QuantityDetectionQParserPlugin extends QuantityDetector {
             final Set<QuantityOccurrence> occurrences = new TreeSet<>();
 
             @Override
-            public void newQuantityDetected(final QuantityOccurrence occurrence) {
+            public void newQuantityDetected(final Unit unit, final QuantityOccurrence occurrence) {
                 occurrences.add(occurrence);
             }
 

@@ -6,6 +6,28 @@
       }
     },
     {
+      "voltage": {
+        "unit": "v",
+        "variants": {
+          "v": ["volt","volts"]
+        },
+        "boost": 1.3
+      }
+    },
+    {
+      "wattage": {
+        "unit": "w",
+        "variants": {
+          "w": ["watt","watts"]
+        },
+        "gap": {
+          "value": 10,
+          "mode": "PIVOT"
+        },
+        "boost": 1.3
+      }
+    },
+    {
       "height": {
         "unit": "cm",
         "variants": {

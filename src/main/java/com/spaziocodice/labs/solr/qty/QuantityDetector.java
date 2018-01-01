@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 
+import static com.spaziocodice.labs.solr.qty.QuantityOccurrence.newQuantityOccurrence;
+import static java.lang.Integer.parseInt;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -41,9 +43,10 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
          * with a {@link QuantityOccurrence} instance which contains all information
          * (i.e. amount, unit, offsets) about the detected quantity.
          *
+         * @param unit the unit associated with the detected quantity.
          * @param occurrence the occurrence encapsulating the quantity detection.
          */
-        void newQuantityDetected(final QuantityOccurrence occurrence);
+        void newQuantityDetected(final Unit unit, final QuantityOccurrence occurrence);
 
         /**
          * Returns the built query, that is, the product of this builder.
@@ -106,22 +109,25 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
 
     String buildQuery(final QueryBuilder builder, final StringBuilder query) {
         variantsMap
-              .forEach((variant, fieldName) -> {
-                  for (final Integer unitOffset : indexesOf(query, variant)) {
-                      final int amountOffset = startIndexOfAmount(query, unitOffset);
-                      // TODO: use Optional instead
-                      if (amountOffset != -1) {
-                          final int amount = Integer.parseInt(query.substring(amountOffset, unitOffset).trim());
-                          builder.newQuantityDetected(
-                                  QuantityOccurrence.newOccurrence(
-                                          amount,
-                                          variant,
-                                          fieldName,
-                                          unitOffset,
-                                          amountOffset));
-                      }
-                  }
-              });
+          .forEach((variant, fieldName) ->
+              unit(fieldName)
+                  .ifPresent(unit -> {
+                      indexesOf(query, variant).stream()
+                              .forEach(unitOffset -> {
+                                  final int amountOffset = startIndexOfAmount(query, unitOffset);
+                                  if (amountOffset != -1) {
+                                      final int amount = parseInt(query.substring(amountOffset, unitOffset).trim());
+                                      builder.newQuantityDetected(
+                                              unit,
+                                              newQuantityOccurrence(
+                                                      amount,
+                                                      variant,
+                                                      fieldName,
+                                                      unitOffset,
+                                                      amountOffset));
+                                  }
+                              });
+                  }));
         return builder.product().trim();
     }
 
@@ -210,12 +216,24 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         return unit.isPresent() ? unit.get().gap() : Optional.empty();
     }
 
+    /**
+     * Finds, in the configuration, the unit associated with the given field name.
+     *
+     * @param fieldName the field name.
+     * @return the unit associated with the given field name.
+     */
     private Optional<Unit> unit(final String fieldName) {
         return units.stream()
                 .filter(unit -> unit.fieldName().equals(fieldName))
                 .findFirst();
     }
 
+    /**
+     * Returns the units that have been configured within this instance configuration.
+     *
+     * @param configuration the component configuration.
+     * @return the units that have been configured within this instance configuration.
+     */
     private List<Unit> units(final JsonNode configuration) {
         return stream(configuration.get("units").spliterator(), false)
                 .map(unitNode -> {
@@ -226,7 +244,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
 
                     final Unit unit = new Unit(
                             fieldName,
-                            unitName, unitCfg.hasNonNull("boost") ? unitCfg.get("boost").floatValue() : 1f);
+                            unitName, unitCfg.hasNonNull("boost") ? unitCfg.get("boost").floatValue() : null);
 
                     ofNullable(unitCfg.get("gap"))
                             .ifPresent(gap ->
@@ -269,5 +287,4 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     JsonNode configuration(final ResourceLoader loader) throws IOException {
         return new ObjectMapper().readTree(loader.openResource("units.json"));
     }
-
 }
