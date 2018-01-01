@@ -1,9 +1,16 @@
 package com.spaziocodice.labs.solr.qty;
 
+import com.spaziocodice.labs.solr.qty.cfg.Unit;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.FunctionQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
 
+/**
+ * A {@link QParserPlugin} which produces a boost function according with the detected quantities within a query string.
+ *
+ * @author agazzarini
+ * @since 1.0
+ */
 public class QuantityDetectionBFParserPlugin extends QuantityDetector {
     private FunctionQParserPlugin qParser;
 
@@ -19,7 +26,7 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
             final StringBuilder buffer = new StringBuilder();
 
             @Override
-            public void newQuantityDetected(final QuantityOccurrence occurrence) {
+            public void newQuantityDetected(final Unit unit, final QuantityOccurrence occurrence) {
                 buffer
                     .append("recip(abs(sub(")
                     .append(occurrence.fieldName)

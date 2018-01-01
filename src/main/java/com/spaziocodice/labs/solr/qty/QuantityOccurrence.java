@@ -32,7 +32,17 @@ class QuantityOccurrence implements Comparable<QuantityOccurrence> {
         this.indexOfUnit = indexOfUnit;
     }
 
-    static QuantityOccurrence newOccurrence(final Number amount, final String unit, final String fieldName, final int indexOfUnit, final int indexOfAmount) {
+    /**
+     * Creates a new {@link QuantityOccurrence}.
+     *
+     * @param amount the occurrence amount.
+     * @param unit the associated unit.
+     * @param fieldName the field name in the schema.
+     * @param indexOfUnit the start offset of the unit (within the input query).
+     * @param indexOfAmount the start offset of the amount (within the input query).
+     * @return a new {@link QuantityOccurrence} instance.
+     */
+    static QuantityOccurrence newQuantityOccurrence(final Number amount, final String unit, final String fieldName, final int indexOfUnit, final int indexOfAmount) {
         return new QuantityOccurrence(amount, unit, fieldName, indexOfAmount, indexOfUnit);
     }
 
