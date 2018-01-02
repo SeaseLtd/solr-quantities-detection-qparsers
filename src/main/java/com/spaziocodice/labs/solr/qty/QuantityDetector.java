@@ -34,7 +34,10 @@ import static java.util.stream.StreamSupport.stream;
  */
 public abstract class QuantityDetector extends QParserPlugin implements ResourceLoaderAware {
     /**
+     * Query builder.
      *
+     * @author agazzarini
+     * @since 1.0
      */
     interface QueryBuilder {
         /**
@@ -118,23 +121,20 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         variantsMap
           .forEach((variant, fieldName) ->
               unit(fieldName)
-                  .ifPresent(unit -> {
-                      indexesOf(query, variant).stream()
-                              .forEach(unitOffset -> {
-                                  final int amountOffset = startIndexOfAmount(query, unitOffset);
-                                  if (amountOffset != -1) {
-                                      final int amount = parseInt(query.substring(amountOffset, unitOffset).trim());
-                                      builder.newQuantityDetected(
-                                              unit,
-                                              newQuantityOccurrence(
-                                                      amount,
-                                                      variant,
-                                                      fieldName,
-                                                      unitOffset,
-                                                      amountOffset));
-                                  }
-                              });
-                  }));
+                  .ifPresent(unit ->
+                      indexesOf(query, variant)
+                          .forEach(unitOffset ->
+                              startIndexOfAmount(query, unitOffset)
+                                  .ifPresent(
+                                    amountOffset ->
+                                        builder.newQuantityDetected(
+                                                unit,
+                                                newQuantityOccurrence(
+                                                        parseInt(query.substring(amountOffset, unitOffset).trim()),
+                                                        variant,
+                                                        fieldName,
+                                                        unitOffset,
+                                                        amountOffset))))));
         return builder.product().trim();
     }
 
@@ -153,9 +153,9 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @param unitIndex the start offset of the unit.
      * @return the start offset of the (potential) detected quantity, -1 in case the detection is not a quantity.
      */
-    int startIndexOfAmount(final StringBuilder q, final int unitIndex) {
+    OptionalInt startIndexOfAmount(final StringBuilder q, final int unitIndex) {
         if (unitIndex <= 0) {
-            return -1;
+            return OptionalInt.empty();
         }
 
         boolean atLeastOneDigitHasBeenMet = false;
@@ -163,7 +163,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         for (; i >= 0; i--) {
             final char ch = q.charAt(i);
             if (Character.isLetter(ch)) {
-                return -1;
+                return OptionalInt.empty();
             }
 
             if (Character.isDigit(ch)) {
@@ -171,14 +171,14 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
             }
 
             if (Character.isWhitespace(ch) && atLeastOneDigitHasBeenMet) {
-                    return i + 1;
+                    return OptionalInt.of(i + 1);
             }
 
             if (i == 0 && atLeastOneDigitHasBeenMet) {
-                return i;
+                return OptionalInt.of(i);
             }
         }
-        return i;
+        return i != -1 ? OptionalInt.of(i) : OptionalInt.empty();
     }
 
     /**
@@ -254,20 +254,20 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                             unitName, unitCfg.hasNonNull("boost") ? unitCfg.get("boost").floatValue() : null);
 
                     ofNullable(unitCfg.get("gap"))
-                            .ifPresent(gap ->
-                                unit.setGap(
-                                        gap.hasNonNull("value") ? gap.get("value").floatValue() : null,
-                                        gap.get("mode").asText("PIVOT")));
+                        .ifPresent(gap ->
+                            unit.setGap(
+                                    gap.hasNonNull("value") ? gap.get("value").floatValue() : null,
+                                    gap.get("mode").asText("PIVOT")));
 
                     ofNullable(unitCfg.get("variants"))
-                            .ifPresent(variants ->
-                                variants.fieldNames()
-                                        .forEachRemaining(mainFormName ->
-                                            unit.addVariant(
-                                                    mainFormName,
-                                                    stream(variants.get(mainFormName).spliterator(), false)
-                                                            .map(JsonNode::asText)
-                                                            .collect(toList()))));
+                        .ifPresent(variants ->
+                            variants.fieldNames()
+                                .forEachRemaining(mainFormName ->
+                                    unit.addVariant(
+                                        mainFormName,
+                                        stream(variants.get(mainFormName).spliterator(), false)
+                                                .map(JsonNode::asText)
+                                                .collect(toList()))));
                     return unit;
                 }).collect(toList());
     }

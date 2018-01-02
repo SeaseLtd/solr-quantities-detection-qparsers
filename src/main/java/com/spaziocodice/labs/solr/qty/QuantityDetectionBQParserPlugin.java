@@ -75,8 +75,8 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             final Unit.Gap gap,
             final StringBuilder builder,
             final QuantityOccurrence occurrence) {
-        int leftBound = 0;
-        int rightBound = 0;
+        int leftBound;
+        int rightBound;
 
         switch (gap.mode()) {
             case MAX:
@@ -110,7 +110,6 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
                 .append(leftBound)
                 .append(" TO ")
                 .append(rightBound != -1 ? rightBound : "*")
-                .append("]")
-                .append(" ");
+                .append("] ");
     }
 }

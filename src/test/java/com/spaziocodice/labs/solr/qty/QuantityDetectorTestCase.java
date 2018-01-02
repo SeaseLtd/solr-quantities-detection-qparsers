@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.OptionalInt;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.IntStream.range;
@@ -129,7 +130,7 @@ public class QuantityDetectorTestCase {
                 .forEach(query ->
                             assertEquals(
                                 ">" + query.toString() + "<",
-                                -1,
+                                OptionalInt.empty(),
                                 cut.startIndexOfAmount(query, query.indexOf(unit))));
     }
 
@@ -147,7 +148,7 @@ public class QuantityDetectorTestCase {
                         final StringBuilder query = new StringBuilder(queries[index]);
                         assertEquals(
                                 index + " => " + ">" + query.toString() + "<",
-                                index,
+                                OptionalInt.of(index),
                                 cut.startIndexOfAmount(query, query.indexOf(unit)));
                 });
     }

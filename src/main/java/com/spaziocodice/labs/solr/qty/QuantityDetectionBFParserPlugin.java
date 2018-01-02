@@ -15,7 +15,7 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
     private FunctionQParserPlugin qParser;
 
     @Override
-    public void init(NamedList args) {
+    public void init(final NamedList args) {
         super.init(args);
         this.qParser = new FunctionQParserPlugin();
     }
