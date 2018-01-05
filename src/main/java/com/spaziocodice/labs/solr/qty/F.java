@@ -28,13 +28,12 @@ public abstract class F {
     }
 
     /**
-     * Returns (possibily) the input value as a plain int.
+     * Returns a comparable number ({@link Number} itself doesn't implement {@link Comparable}.
      *
      * @param value the input value.
-     * @return (possibily) the input value as a plain int.
+     * @return a comparable number ({@link Number}
      */
-    public static Comparable<? extends Number> narrowAsComparable(final float value) {
-        return Float.valueOf(value);
+    public static Comparable<? extends Number> narrowAsComparable(final Number value) {
+        return Float.valueOf(value.floatValue());
     }
-
 }

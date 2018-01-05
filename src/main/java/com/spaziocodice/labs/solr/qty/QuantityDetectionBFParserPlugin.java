@@ -7,6 +7,9 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.FunctionQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
 
+import static com.spaziocodice.labs.solr.qty.F.narrow;
+import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
+
 /**
  * A {@link QParserPlugin} which produces a boost function according with the detected quantities within a query string.
  *
@@ -31,13 +34,17 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
             public void newQuantityDetected(
                     final EquivalenceTable equivalenceTable,
                     final Unit unit,
-                    final QuantityOccurrence occurrence) {
-                buffer
-                    .append("recip(abs(sub(")
-                    .append(occurrence.fieldName())
-                    .append(", ")
-                    .append(occurrence.amount())
-                    .append(")),1,1000,1000) ");
+                    final QuantityOccurrence detected) {
+
+                unit.getVariantByName(
+                        detected.unit()).ifPresent(
+                        variant ->
+                            buffer
+                                .append("recip(abs(sub(")
+                                .append(detected.fieldName())
+                                .append(", ")
+                                .append(equivalenceTable.equivalent(variant.refName(), detected.amount()))
+                                .append(")),1,1000,1000) "));
             }
 
             @Override

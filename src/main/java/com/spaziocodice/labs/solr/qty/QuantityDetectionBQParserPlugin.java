@@ -38,15 +38,16 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
                     final EquivalenceTable equivalenceTable,
                     final Unit unit,
                     final QuantityOccurrence detected) {
-                unit.getVariantByName(detected.unit())
-                        .ifPresent(variant -> {
-                            final QuantityOccurrence occurrence =
-                                    newQuantityOccurrence(
-                                            equivalenceTable.equivalent(variant.refName(), detected.amount()),
-                                            unit.name(),
-                                            unit.fieldName());
-                            addLiteralQuery(unit, buffer, occurrence);
-                            gap(unit.fieldName()).ifPresent(gap -> addRangeQuery(gap, buffer, occurrence));
+                unit.getVariantByName(
+                        detected.unit()).ifPresent(
+                                variant -> {
+                                    final QuantityOccurrence occurrence =
+                                            newQuantityOccurrence(
+                                                    equivalenceTable.equivalent(variant.refName(), detected.amount()),
+                                                    unit.name(),
+                                                    unit.fieldName());
+                                    addLiteralQuery(unit, buffer, occurrence);
+                                    gap(unit.fieldName()).ifPresent(gap -> addRangeQuery(gap, buffer, occurrence));
                         });
             }
 
@@ -91,7 +92,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             final StringBuilder builder,
             final QuantityOccurrence occurrence) {
 
-        final Comparable detectedAmount = narrowAsComparable(occurrence.amount().floatValue());
+        final Comparable detectedAmount = narrowAsComparable(occurrence.amount());
 
         Number leftBound;
         Number rightBound;
@@ -100,9 +101,9 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             case MAX:
                 leftBound =
                         gap.value() != null
-                            ? detectedAmount.compareTo(narrowAsComparable(gap.value().floatValue())) >= 0
+                            ? detectedAmount.compareTo(narrowAsComparable(gap.value())) >= 0
                                 ? narrow(occurrence.amount().floatValue() - gap.value().floatValue())
-                                : narrow(0.0f)
+                                : 0
                             : 0;
                 rightBound = narrow(occurrence.amount());
                 break;
@@ -111,13 +112,13 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
                 rightBound =
                         gap.value() != null
                                 ? narrow(occurrence.amount().floatValue() + gap.value().floatValue())
-                                : narrow(-1.0f);
+                                : -1;
                 break;
             default:
                 final float distance = gap.value().floatValue();
                 leftBound = occurrence.amount().floatValue() >= distance
                                 ? narrow(occurrence.amount().floatValue() - distance)
-                                : narrow(0.0f);
+                                : 0;
                 rightBound = narrow(occurrence.amount().floatValue() + distance);
                 break;
         }

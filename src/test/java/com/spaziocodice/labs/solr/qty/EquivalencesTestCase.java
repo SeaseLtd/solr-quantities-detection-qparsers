@@ -89,11 +89,17 @@ public class EquivalencesTestCase {
 
         data.stream()
                 .map(StringBuilder::new)
-                .forEach(query ->
-                        assertEquals(
-                                query.toString(),
-                                "height:100 height:[90 TO 110]",
-                                bq.buildQuery(bq.queryBuilder(query), query)));
+                .forEach(query -> {
+                    assertEquals(
+                            query.toString(),
+                            "height:100 height:[90 TO 110]",
+                            bq.buildQuery(bq.queryBuilder(query), query));
+
+                    assertEquals(
+                            query.toString(),
+                            "recip(abs(sub(height, 100)),1,1000,1000)",
+                            bf.buildQuery(bf.queryBuilder(query), query));
+                });
     }
 
     @Test
@@ -106,10 +112,15 @@ public class EquivalencesTestCase {
 
         data.stream()
                 .map(StringBuilder::new)
-                .forEach(query ->
+                .forEach(query -> {
                         assertEquals(
                                 query.toString(),
                                 "height:100.7 height:[90.7 TO 110.7]",
-                                bq.buildQuery(bq.queryBuilder(query), query)));
+                                bq.buildQuery(bq.queryBuilder(query), query));
+                        assertEquals(
+                            query.toString(),
+                            "recip(abs(sub(height, 100.7)),1,1000,1000)",
+                            bf.buildQuery(bf.queryBuilder(query), query));
+                });
     }
 }
