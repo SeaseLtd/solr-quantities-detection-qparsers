@@ -1,8 +1,6 @@
 package com.spaziocodice.labs.solr.qty.domain;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Optional.*;
 
@@ -19,7 +17,7 @@ public class Unit {
      * @author agazzarini
      * @since 1.0
      */
-    public class Variant {
+    public class Variant implements Comparable<Variant>{
         final String refName;
         final List<String> syn;
 
@@ -50,6 +48,21 @@ public class Unit {
          */
         public List<String> forms() {
             return syn;
+        }
+
+        @Override
+        public int hashCode() {
+            return refName.hashCode();
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            return obj instanceof Variant && ((Variant)obj).refName.equals(refName);
+        }
+
+        @Override
+        public int compareTo(final Variant v) {
+            return refName.compareTo(v.refName);
         }
     }
 
@@ -98,8 +111,9 @@ public class Unit {
     private final String name;
     private final Optional<Float> boost;
 
-    private List<Variant> variants = new ArrayList<>();
+    private Set<Variant> variants = new HashSet<>();
     private Gap gap;
+    private final Variant itself;
 
     /**
      * Builds a new unit with the given data.
@@ -112,6 +126,7 @@ public class Unit {
         this.fieldName = fieldName;
         this.name = name;
         this.boost = boost == null || boost.equals(1f) ? empty() : of(boost);
+        this.itself = new Variant(name, Collections.emptyList());
     }
 
     /**
@@ -177,7 +192,7 @@ public class Unit {
      *
      * @return the variants list asscociated with this unit.
      */
-    public List<Variant> variants() {
+    public Set<Variant> variants() {
         return variants;
     }
 
@@ -188,8 +203,11 @@ public class Unit {
      * @return the variant associated with the given unitName.
      */
     public Optional<Variant> getVariantByName(final String unitName) {
-        return variants.stream()
-                .filter(variant -> variant.refName.equals(unitName) || variant.syn.contains(unitName))
+        final Optional<Variant> result = variants.stream()
+                .filter(variant ->  variant.refName.equals(unitName) || variant.syn.contains(unitName))
                 .findFirst();
+        return result.isPresent()
+                ? result
+                : unitName.equals(name) ? Optional.of(itself) : Optional.empty();
     }
 }

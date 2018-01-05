@@ -3,6 +3,8 @@ package com.spaziocodice.labs.solr.qty.domain;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.spaziocodice.labs.solr.qty.F.narrow;
+
 /**
  * A collection of equivalence rules for converting amounts of different units.
  *
@@ -32,18 +34,5 @@ public class EquivalenceTable {
     public Number equivalent(final String unitName, final Number amount ) {
         final float factor = table.getOrDefault(unitName, 1).floatValue();
         return narrow(factor > 0 ? amount.floatValue() / factor : amount.floatValue() * factor);
-    }
-
-    /**
-     * Returns (possibily) the input value as a plain int.
-     *
-     * @param value the input value.
-     * @return (possibily) the input value as a plain int.
-     */
-    private Number narrow(final float value) {
-        if (value % 1 == 0) {
-            return (int)value;
-        }
-        return value;
     }
 }

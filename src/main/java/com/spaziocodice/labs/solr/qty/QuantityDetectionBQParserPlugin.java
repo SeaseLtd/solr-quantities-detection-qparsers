@@ -7,6 +7,8 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.LuceneQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
 
+import static com.spaziocodice.labs.solr.qty.F.narrow;
+import static com.spaziocodice.labs.solr.qty.F.narrowAsComparable;
 import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
 
 /**
@@ -88,32 +90,35 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             final Unit.Gap gap,
             final StringBuilder builder,
             final QuantityOccurrence occurrence) {
-        int leftBound;
-        int rightBound;
+
+        final Comparable detectedAmount = narrowAsComparable(occurrence.amount().floatValue());
+
+        Number leftBound;
+        Number rightBound;
 
         switch (gap.mode()) {
             case MAX:
                 leftBound =
                         gap.value() != null
-                            ? occurrence.amount().intValue() >= gap.value().intValue()
-                                ? occurrence.amount().intValue() - gap.value().intValue()
-                                : 0
+                            ? detectedAmount.compareTo(narrowAsComparable(gap.value().floatValue())) >= 0
+                                ? narrow(occurrence.amount().floatValue() - gap.value().floatValue())
+                                : narrow(0.0f)
                             : 0;
-                rightBound = occurrence.amount().intValue();
+                rightBound = narrow(occurrence.amount());
                 break;
             case MIN:
-                leftBound = occurrence.amount().intValue();
+                leftBound = narrow(occurrence.amount());
                 rightBound =
                         gap.value() != null
-                                ? occurrence.amount().intValue() + gap.value().intValue()
-                                : -1;
+                                ? narrow(occurrence.amount().floatValue() + gap.value().floatValue())
+                                : narrow(-1.0f);
                 break;
             default:
-                final int distance = gap.value().intValue();
-                leftBound = occurrence.amount().intValue() >= distance
-                                ? occurrence.amount().intValue() - distance
-                                : 0;
-                rightBound = occurrence.amount().intValue() + distance;
+                final float distance = gap.value().floatValue();
+                leftBound = occurrence.amount().floatValue() >= distance
+                                ? narrow(occurrence.amount().floatValue() - distance)
+                                : narrow(0.0f);
+                rightBound = narrow(occurrence.amount().floatValue() + distance);
                 break;
         }
 
@@ -122,7 +127,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
                 .append(":[")
                 .append(leftBound)
                 .append(" TO ")
-                .append(rightBound != -1 ? rightBound : "*")
+                .append(rightBound.intValue() != -1 ? rightBound : "*")
                 .append("] ");
     }
 }
