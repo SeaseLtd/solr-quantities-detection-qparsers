@@ -2,7 +2,9 @@ package com.spaziocodice.labs.solr.qty;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spaziocodice.labs.solr.qty.cfg.Unit;
+import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
+import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
+import com.spaziocodice.labs.solr.qty.domain.Unit;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.analysis.util.ResourceLoaderAware;
 import org.apache.solr.common.params.SolrParams;
@@ -16,8 +18,8 @@ import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 
-import static com.spaziocodice.labs.solr.qty.QuantityOccurrence.newQuantityOccurrence;
-import static java.lang.Integer.parseInt;
+import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
+import static java.util.Collections.unmodifiableList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -46,10 +48,11 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
          * with a {@link QuantityOccurrence} instance which contains all information
          * (i.e. amount, unit, offsets) about the detected quantity.
          *
+         * @param equivalenceTable the equivalence table.
          * @param unit the unit associated with the detected quantity.
          * @param occurrence the occurrence encapsulating the quantity detection.
          */
-        void newQuantityDetected(final Unit unit, final QuantityOccurrence occurrence);
+        void newQuantityDetected(final EquivalenceTable equivalenceTable, final Unit unit, final QuantityOccurrence occurrence);
 
         /**
          * Returns the built query, that is, the product of this builder.
@@ -73,6 +76,8 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     private Map<String, String> variantsMap;
     private List<Unit> units;
 
+    private EquivalenceTable equivalenceTable;
+
     /**
      * Completes the initialization of this component by loading the provided configuration.
      *
@@ -80,12 +85,13 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @throws IOException in case of I/O failure (e.g. reading the conf file)
      */
     public void inform(final ResourceLoader loader) throws IOException {
-        units = units(configuration(loader));
+        final JsonNode configuration = configuration(loader);
+
+        units = unmodifiableList(units(configuration));
         variantsMap = units.stream()
                 .flatMap(unit -> {
                     final Set<String> forms = new HashSet<>();
                     forms.add(unit.name());
-
                     unit.variants()
                             .forEach(variant -> {
                                 forms.add(variant.refName());
@@ -93,6 +99,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                             });
                     return forms.stream().map(form -> new SimpleEntry<>(form, unit.fieldName()));})
                 .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+        equivalenceTable = new EquivalenceTable(equivalenceTable(configuration));
     }
 
     @Override
@@ -128,9 +135,12 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                                   .ifPresent(
                                     amountOffset ->
                                         builder.newQuantityDetected(
+                                                equivalenceTable,
                                                 unit,
                                                 newQuantityOccurrence(
-                                                        parseInt(query.substring(amountOffset, unitOffset).trim()),
+                                                        query.substring(amountOffset, unitOffset).contains(".")
+                                                            ? Double.parseDouble(query.substring(amountOffset, unitOffset).trim())
+                                                            : Float.parseFloat(query.substring(amountOffset, unitOffset).trim()),
                                                         variant,
                                                         fieldName,
                                                         unitOffset,
@@ -233,6 +243,29 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         return units.stream()
                 .filter(unit -> unit.fieldName().equals(fieldName))
                 .findFirst();
+    }
+
+    /**
+     * Returns the equivalence table declared in the configuration.
+     *
+     * @param configuration this plugin configuration.
+     * @return the equivalence table declared in the configuration.
+     */
+    private Map<String, Number> equivalenceTable(final JsonNode configuration) {
+        final Map<String, Number> result = new HashMap<>();
+        ofNullable(configuration.get("equivalence.table"))
+            .ifPresent(table ->
+               table.iterator().forEachRemaining(refUnit -> {
+                    refUnit.fieldNames()
+                            .forEachRemaining(name -> {
+                                result.put(name, 1);
+                                final JsonNode unitTable = refUnit.get(name);
+                                unitTable
+                                        .fieldNames()
+                                        .forEachRemaining(unit -> result.put(unit, unitTable.get(unit).numberValue()));
+                            });
+               }));
+        return result;
     }
 
     /**

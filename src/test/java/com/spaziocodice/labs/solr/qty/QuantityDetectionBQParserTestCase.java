@@ -119,6 +119,7 @@ public class QuantityDetectionBQParserTestCase {
                 .forEach(
                         query ->
                                 assertEquals(
+                                        query.toString(),
                                         "wattage:100^" + configuredBoost + " wattage:[90 TO 110]",
                                         cut.buildQuery(cut.queryBuilder(query), query)));
     }
@@ -126,8 +127,8 @@ public class QuantityDetectionBQParserTestCase {
     @Test
     public void multipleQuantitiesMixedWithBoosts() {
         final Map<String, String> data = new HashMap<>();
-        data.put("There a 100lt quantity here, and another 50 w here", "wattage:50^1.3 wattage:[40 TO 60] capacity:100");
-        data.put("129 lt. There a 10230 cm, another 553watts here, and another 293 lt here. Other 992 watt", "wattage:553^1.3 wattage:[543 TO 563] capacity:129 capacity:293 height:10230 height:[10220 TO 10240] wattage:992^1.3 wattage:[982 TO 1002]");
+        data.put("There a 100lt quantity here, and another 50 w here", "capacity:100 wattage:50^1.3 wattage:[40 TO 60]");
+        data.put("129 lt. There a 10230 cm, another 553watts here, and another 293 lt here. Other 992 watt", "capacity:129 capacity:293 height:10230 height:[10220 TO 10240] wattage:553^1.3 wattage:[543 TO 563] wattage:992^1.3 wattage:[982 TO 1002]");
         data.put("100lt 234lt 888 watt 992 lt", "capacity:100 capacity:234 capacity:992 wattage:888^1.3 wattage:[878 TO 898]");
 
         data.forEach((input, expected) -> {

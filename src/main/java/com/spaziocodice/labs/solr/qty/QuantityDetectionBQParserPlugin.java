@@ -1,9 +1,15 @@
 package com.spaziocodice.labs.solr.qty;
 
-import com.spaziocodice.labs.solr.qty.cfg.Unit;
+import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
+import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
+import com.spaziocodice.labs.solr.qty.domain.Unit;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.LuceneQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
+
+import static com.spaziocodice.labs.solr.qty.F.narrow;
+import static com.spaziocodice.labs.solr.qty.F.narrowAsComparable;
+import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
 
 /**
  * A {@link QParserPlugin} which produces a boost query according with the detected quantities within a query string.
@@ -28,9 +34,21 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             final StringBuilder buffer = new StringBuilder();
 
             @Override
-            public void newQuantityDetected(final Unit unit, final QuantityOccurrence occurrence) {
-                addLiteralQuery(unit, buffer, occurrence);
-                gap(occurrence.fieldName).ifPresent(gap -> addRangeQuery(gap, buffer, occurrence));
+            public void newQuantityDetected(
+                    final EquivalenceTable equivalenceTable,
+                    final Unit unit,
+                    final QuantityOccurrence detected) {
+                unit.getVariantByName(
+                        detected.unit()).ifPresent(
+                                variant -> {
+                                    final QuantityOccurrence occurrence =
+                                            newQuantityOccurrence(
+                                                    equivalenceTable.equivalent(variant.refName(), detected.amount()),
+                                                    unit.name(),
+                                                    unit.fieldName());
+                                    addLiteralQuery(unit, buffer, occurrence);
+                                    gap(unit.fieldName()).ifPresent(gap -> addRangeQuery(gap, buffer, occurrence));
+                        });
             }
 
             @Override
@@ -51,16 +69,14 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
      * @param unit the unit associated with the detected quantity occurrence.
      * @param builder the query buffer.
      * @param occurrence the quantity instance occurrence.
-     * @return the same query buffer with the new filter definition.
      */
-    private StringBuilder addLiteralQuery(final Unit unit, final StringBuilder builder, final QuantityOccurrence occurrence) {
+    private void addLiteralQuery(final Unit unit, final StringBuilder builder, final QuantityOccurrence occurrence) {
         builder
-            .append(occurrence.fieldName)
+            .append(unit.fieldName())
             .append(":")
-            .append(occurrence.amount);
+            .append(occurrence.amount());
         unit.boost().ifPresent(boost -> builder.append("^").append(boost));
         builder.append(" ");
-        return builder;
     }
 
     /**
@@ -75,41 +91,44 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             final Unit.Gap gap,
             final StringBuilder builder,
             final QuantityOccurrence occurrence) {
-        int leftBound;
-        int rightBound;
+
+        final Comparable detectedAmount = narrowAsComparable(occurrence.amount());
+
+        Number leftBound;
+        Number rightBound;
 
         switch (gap.mode()) {
             case MAX:
                 leftBound =
                         gap.value() != null
-                            ? occurrence.amount.intValue() >= gap.value().intValue()
-                                ? occurrence.amount.intValue() - gap.value().intValue()
+                            ? detectedAmount.compareTo(narrowAsComparable(gap.value())) >= 0
+                                ? narrow(occurrence.amount().floatValue() - gap.value().floatValue())
                                 : 0
                             : 0;
-                rightBound = occurrence.amount.intValue();
+                rightBound = narrow(occurrence.amount());
                 break;
             case MIN:
-                leftBound = occurrence.amount.intValue();
+                leftBound = narrow(occurrence.amount());
                 rightBound =
                         gap.value() != null
-                                ? occurrence.amount.intValue() + gap.value().intValue()
+                                ? narrow(occurrence.amount().floatValue() + gap.value().floatValue())
                                 : -1;
                 break;
             default:
-                final int distance = gap.value().intValue();
-                leftBound = occurrence.amount.intValue() >= distance
-                                ? occurrence.amount.intValue() - distance
+                final float distance = gap.value().floatValue();
+                leftBound = occurrence.amount().floatValue() >= distance
+                                ? narrow(occurrence.amount().floatValue() - distance)
                                 : 0;
-                rightBound = occurrence.amount.intValue() + distance;
+                rightBound = narrow(occurrence.amount().floatValue() + distance);
                 break;
         }
 
         return builder
-                .append(occurrence.fieldName)
+                .append(occurrence.fieldName())
                 .append(":[")
                 .append(leftBound)
                 .append(" TO ")
-                .append(rightBound != -1 ? rightBound : "*")
+                .append(rightBound.intValue() != -1 ? rightBound : "*")
                 .append("] ");
     }
 }

@@ -1,4 +1,4 @@
-package com.spaziocodice.labs.solr.qty.cfg;
+package com.spaziocodice.labs.solr.qty.domain;
 
 /**
  * Gap mode for range queries.

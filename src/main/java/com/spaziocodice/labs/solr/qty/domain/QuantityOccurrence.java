@@ -1,4 +1,4 @@
-package com.spaziocodice.labs.solr.qty;
+package com.spaziocodice.labs.solr.qty.domain;
 
 /**
  * A simple value object encapsulating a quantity occurrence within a (query) string.
@@ -8,12 +8,12 @@ package com.spaziocodice.labs.solr.qty;
  * @see <a href="https://martinfowler.com/tags/analysis%20patterns.html">Analysis Patterns</a>
  * @see <a href="http://www.dsc.ufcg.edu.br/~jacques/cursos/map/recursos/fowler-ap/Analysis%20Pattern%20Quantity.htm>Quantity Pattern</a>
  */
-class QuantityOccurrence implements Comparable<QuantityOccurrence> {
-    final Number amount;
-    final String unit;
-    final String fieldName;
-    final int indexOfAmount;
-    final int indexOfUnit;
+public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
+    private final Number amount;
+    private final String unit;
+    private final String fieldName;
+    private final int indexOfAmount;
+    private final int indexOfUnit;
 
     /**
      * Builds a new {@link QuantityOccurrence} with the given data.
@@ -42,8 +42,20 @@ class QuantityOccurrence implements Comparable<QuantityOccurrence> {
      * @param indexOfAmount the start offset of the amount (within the input query).
      * @return a new {@link QuantityOccurrence} instance.
      */
-    static QuantityOccurrence newQuantityOccurrence(final Number amount, final String unit, final String fieldName, final int indexOfUnit, final int indexOfAmount) {
+    public static QuantityOccurrence newQuantityOccurrence(final Number amount, final String unit, final String fieldName, final int indexOfUnit, final int indexOfAmount) {
         return new QuantityOccurrence(amount, unit, fieldName, indexOfAmount, indexOfUnit);
+    }
+
+    /**
+     * Creates a new {@link QuantityOccurrence}.
+     *
+     * @param amount the occurrence amount.
+     * @param unit the associated unit.
+     * @param fieldName the field name in the schema.
+     * @return a new {@link QuantityOccurrence} instance.
+     */
+    public static QuantityOccurrence newQuantityOccurrence(final Number amount, final String unit, final String fieldName) {
+        return new QuantityOccurrence(amount, unit, fieldName, -1, -1);
     }
 
     @Override
@@ -71,5 +83,30 @@ class QuantityOccurrence implements Comparable<QuantityOccurrence> {
     @Override
     public int compareTo(final QuantityOccurrence occurrence) {
         return occurrence.indexOfAmount - indexOfAmount;
+    }
+
+    /**
+     * Returns the unit (name) associated with this occurrence.
+     *
+     * @return the unit (name) associated with this occurrence.
+     */
+    public String unit() {
+        return unit;
+    }
+
+    public int indexOfAmount() {
+        return indexOfAmount;
+    }
+
+    public int indexOfUnit() {
+        return indexOfUnit;
+    }
+
+    public Number amount() {
+        return amount;
+    }
+
+    public String fieldName() {
+        return fieldName;
     }
 }
