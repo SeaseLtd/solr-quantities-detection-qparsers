@@ -1,4 +1,4 @@
-package com.spaziocodice.labs.solr.qty.cfg;
+package com.spaziocodice.labs.solr.qty.domain;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,6 @@ import static java.util.Optional.*;
  * @since 1.0
  */
 public class Unit {
-
     /**
      * A unit variant.
      *
@@ -180,5 +179,17 @@ public class Unit {
      */
     public List<Variant> variants() {
         return variants;
+    }
+
+    /**
+     * Returns the variant associated with the given unitName.
+     *
+     * @param unitName the unit name.
+     * @return the variant associated with the given unitName.
+     */
+    public Optional<Variant> getVariantByName(final String unitName) {
+        return variants.stream()
+                .filter(variant -> variant.refName.equals(unitName) || variant.syn.contains(unitName))
+                .findFirst();
     }
 }

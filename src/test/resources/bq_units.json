@@ -31,7 +31,16 @@
       "height": {
         "unit": "cm",
         "variants": {
-          "cm": ["centimeters"]
+          "mm": [
+            "millimeters"
+          ],
+          "cm": [
+            "centimeters"
+          ],
+          "m": [
+            "mt",
+            "meters"
+          ]
         },
         "gap": {
           "value": 10,

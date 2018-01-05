@@ -1,6 +1,8 @@
 package com.spaziocodice.labs.solr.qty;
 
-import com.spaziocodice.labs.solr.qty.cfg.Unit;
+import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
+import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
+import com.spaziocodice.labs.solr.qty.domain.Unit;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.FunctionQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
@@ -26,12 +28,15 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
             final StringBuilder buffer = new StringBuilder();
 
             @Override
-            public void newQuantityDetected(final Unit unit, final QuantityOccurrence occurrence) {
+            public void newQuantityDetected(
+                    final EquivalenceTable equivalenceTable,
+                    final Unit unit,
+                    final QuantityOccurrence occurrence) {
                 buffer
                     .append("recip(abs(sub(")
-                    .append(occurrence.fieldName)
+                    .append(occurrence.fieldName())
                     .append(", ")
-                    .append(occurrence.amount)
+                    .append(occurrence.amount())
                     .append(")),1,1000,1000) ");
             }
 
