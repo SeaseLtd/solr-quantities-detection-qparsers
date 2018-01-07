@@ -1,5 +1,7 @@
 package com.spaziocodice.labs.solr.qty.domain;
 
+import java.util.List;
+
 /**
  * A simple value object encapsulating a quantity occurrence within a (query) string.
  *
@@ -11,7 +13,7 @@ package com.spaziocodice.labs.solr.qty.domain;
 public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
     private final Number amount;
     private final String unit;
-    private final String fieldName;
+    private final List<String> fieldNames;
     private final int indexOfAmount;
     private final int indexOfUnit;
 
@@ -20,14 +22,14 @@ public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
      *
      * @param amount the amount.
      * @param unit the unit.
-     * @param fieldName the field name in the Solr schema.
+     * @param fieldNames the field names in the Solr schema.
      * @param indexOfAmount the start index of the amount within the (query) string.
      * @param indexOfUnit the start index of the unit within the (query) string.
      */
-    private QuantityOccurrence(final Number amount, final String unit, final String fieldName, final int indexOfAmount, final int indexOfUnit) {
+    private QuantityOccurrence(final Number amount, final String unit, final List<String> fieldNames, final int indexOfAmount, final int indexOfUnit) {
         this.amount = amount;
         this.unit = unit;
-        this.fieldName = fieldName;
+        this.fieldNames = fieldNames;
         this.indexOfAmount = indexOfAmount;
         this.indexOfUnit = indexOfUnit;
     }
@@ -37,13 +39,18 @@ public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
      *
      * @param amount the occurrence amount.
      * @param unit the associated unit.
-     * @param fieldName the field name in the schema.
+     * @param fieldNames the field names in the schema.
      * @param indexOfUnit the start offset of the unit (within the input query).
      * @param indexOfAmount the start offset of the amount (within the input query).
      * @return a new {@link QuantityOccurrence} instance.
      */
-    public static QuantityOccurrence newQuantityOccurrence(final Number amount, final String unit, final String fieldName, final int indexOfUnit, final int indexOfAmount) {
-        return new QuantityOccurrence(amount, unit, fieldName, indexOfAmount, indexOfUnit);
+    public static QuantityOccurrence newQuantityOccurrence(
+            final Number amount,
+            final String unit,
+            final List<String> fieldNames,
+            final int indexOfUnit,
+            final int indexOfAmount) {
+        return new QuantityOccurrence(amount, unit, fieldNames, indexOfAmount, indexOfUnit);
     }
 
     /**
@@ -51,16 +58,16 @@ public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
      *
      * @param amount the occurrence amount.
      * @param unit the associated unit.
-     * @param fieldName the field name in the schema.
+     * @param fieldNames the field names in the schema.
      * @return a new {@link QuantityOccurrence} instance.
      */
-    public static QuantityOccurrence newQuantityOccurrence(final Number amount, final String unit, final String fieldName) {
-        return new QuantityOccurrence(amount, unit, fieldName, -1, -1);
+    public static QuantityOccurrence newQuantityOccurrence(final Number amount, final String unit, final List<String> fieldNames) {
+        return new QuantityOccurrence(amount, unit, fieldNames, -1, -1);
     }
 
     @Override
     public String toString() {
-        return amount + " " + unit + "(" + fieldName + ")" + indexOfAmount + "," + indexOfUnit;
+        return amount + " " + unit + " maps to " + fieldNames + " [" + indexOfAmount + "," + indexOfUnit + "]";
     }
 
     @Override
@@ -106,7 +113,7 @@ public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
         return amount;
     }
 
-    public String fieldName() {
-        return fieldName;
+    public List<String> fieldNames() {
+        return fieldNames;
     }
 }
