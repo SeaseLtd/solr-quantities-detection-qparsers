@@ -7,8 +7,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.FunctionQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
 
-import static com.spaziocodice.labs.solr.qty.F.narrow;
-import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
+import static java.util.stream.Collectors.joining;
 
 /**
  * A {@link QParserPlugin} which produces a boost function according with the detected quantities within a query string.
@@ -36,15 +35,20 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
                     final Unit unit,
                     final QuantityOccurrence detected) {
 
-                unit.getVariantByName(
-                        detected.unit()).ifPresent(
-                        variant ->
-                            buffer
-                                .append("recip(abs(sub(")
-                                .append(detected.fieldName())
-                                .append(", ")
-                                .append(equivalenceTable.equivalent(variant.refName(), detected.amount()))
-                                .append(")),1,1000,1000) "));
+                unit.getVariantByName(detected.unit())
+                        .ifPresent(variant -> {
+                            final Number amount = equivalenceTable.equivalent(variant.refName(), detected.amount());
+                            detected.fieldNames()
+                                    .stream()
+                                    .map(fieldName ->
+                                            buffer
+                                                .append("recip(abs(sub(")
+                                                .append(fieldName)
+                                                .append(", ")
+                                                .append(amount)
+                                                .append(")),1,1000,1000) "))
+                                    .collect(joining(" ", " ", " "));
+                        });
             }
 
             @Override

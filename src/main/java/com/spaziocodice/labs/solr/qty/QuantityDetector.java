@@ -35,6 +35,8 @@ import static java.util.stream.StreamSupport.stream;
  * @since 1.0
  */
 public abstract class QuantityDetector extends QParserPlugin implements ResourceLoaderAware {
+    private Unit unit;
+
     /**
      * Query builder.
      *
@@ -73,7 +75,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private Map<String, String> variantsMap;
+    private Map<String, List<String>> variantsMap;
     private List<Unit> units;
 
     private EquivalenceTable equivalenceTable;
@@ -97,7 +99,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                                 forms.add(variant.refName());
                                 forms.addAll(variant.forms());
                             });
-                    return forms.stream().map(form -> new SimpleEntry<>(form, unit.fieldName()));})
+                    return forms.stream().map(form -> new SimpleEntry<>(form, unit.fieldNames()));})
                 .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue));
         equivalenceTable = new EquivalenceTable(equivalenceTable(configuration));
     }
@@ -126,8 +128,8 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      */
     String buildQuery(final QueryBuilder builder, final StringBuilder query) {
         variantsMap
-          .forEach((variant, fieldName) ->
-              unit(fieldName)
+          .forEach((variant, fieldNames) ->
+              unit(fieldNames)
                   .ifPresent(unit ->
                       indexesOf(query, variant)
                           .forEach(unitOffset ->
@@ -142,7 +144,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                                                             ? Double.parseDouble(query.substring(amountOffset, unitOffset).trim())
                                                             : Float.parseFloat(query.substring(amountOffset, unitOffset).trim()),
                                                         variant,
-                                                        fieldName,
+                                                        fieldNames,
                                                         unitOffset,
                                                         amountOffset))))));
         return builder.product().trim();
@@ -223,14 +225,15 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     }
 
     /**
-     * Returns the gap associated with the given field name.
+     * Finds, in the configuration, the unit associated with the given field names.
      *
-     * @param fieldName the field name.
-     * @return the gap associated with the given field name.
+     * @param fieldNames the field name.
+     * @return the unit associated with the given field name.
      */
-    final Optional<Unit.Gap> gap(final String fieldName) {
-        final Optional<Unit> unit = unit(fieldName);
-        return unit.isPresent() ? unit.get().gap() : Optional.empty();
+    private Optional<Unit> unit(final List<String> fieldNames) {
+        return units.stream()
+                .filter(unit -> unit.fieldNames().equals(fieldNames))
+                .findFirst();
     }
 
     /**
@@ -241,7 +244,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      */
     private Optional<Unit> unit(final String fieldName) {
         return units.stream()
-                .filter(unit -> unit.fieldName().equals(fieldName))
+                .filter(unit -> unit.fieldNames().contains(fieldName))
                 .findFirst();
     }
 
@@ -277,20 +280,42 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     private List<Unit> units(final JsonNode configuration) {
         return stream(configuration.get("units").spliterator(), false)
                 .map(unitNode -> {
-                    final String fieldName =  unitNode.fieldNames().next();
-                    final JsonNode unitCfg = unitNode.get(fieldName);
+                    final String fieldNames =  unitNode.fieldNames().next();
+                    final JsonNode unitCfg = unitNode.get(fieldNames);
 
                     final String unitName = unitCfg.get("unit").asText();
 
-                    final Unit unit = new Unit(
-                            fieldName,
-                            unitName, unitCfg.hasNonNull("boost") ? unitCfg.get("boost").floatValue() : null);
+                    final Unit unit = new Unit(fieldNames, unitName);
+
+                    ofNullable(unitCfg.get("boost"))
+                        .ifPresent(boost -> {
+                            if (boost.isObject()) {
+                                ofNullable(boost.get("value")).ifPresent(value -> unit.setDefaultBoost(value.floatValue()));
+                                unit.fieldNames()
+                                        .forEach(fieldName ->
+                                            ofNullable(boost.get(fieldName))
+                                                    .ifPresent(boostNode ->
+                                                        unit.addBoost(fieldName, boostNode.get("value").floatValue())));
+                            } else {
+                                unit.setDefaultBoost(boost.floatValue());
+                            }
+                        });
 
                     ofNullable(unitCfg.get("gap"))
-                        .ifPresent(gap ->
+                        .ifPresent(gap -> {
                             unit.setGap(
-                                    gap.hasNonNull("value") ? gap.get("value").floatValue() : null,
-                                    gap.get("mode").asText("PIVOT")));
+                                gap.hasNonNull("value") ? gap.get("value").floatValue() : null,
+                                gap.get("mode").asText("PIVOT"));
+                            
+                            unit.fieldNames()
+                                    .forEach(fieldName ->
+                                        ofNullable(gap.get(fieldName))
+                                                .ifPresent(override ->
+                                                    unit.addGap(
+                                                        fieldName,
+                                                        override.hasNonNull("value") ? override.get("value").floatValue() : null,
+                                                        override.get("mode").asText("PIVOT"))));
+                        });
 
                     ofNullable(unitCfg.get("variants"))
                         .ifPresent(variants ->

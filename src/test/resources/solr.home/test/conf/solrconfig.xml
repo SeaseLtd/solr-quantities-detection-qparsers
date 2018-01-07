@@ -51,17 +51,11 @@
     <requestHandler name="/try" class="solr.SearchHandler" default="true">
         <lst name="invariants">
             <str name="defType">qty</str>
-            <str name="df">product_name</str>
+            <str name="df">name</str>
         </lst>
         <lst name="defaults">
-            <str name="qf">
-                name
-            </str>
-            <str name="pf">
-                name^10
-            </str>
             <str name="bq">{!bqty v=$q}</str>
-            <str name="boost">{!bfqty v=$q}</str>
+            <str name="defaultBoost">{!bfqty v=$q}</str>
         </lst>
     </requestHandler>
 

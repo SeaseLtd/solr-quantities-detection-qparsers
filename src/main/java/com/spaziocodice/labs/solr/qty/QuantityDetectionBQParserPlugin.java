@@ -10,6 +10,7 @@ import org.apache.solr.search.QParserPlugin;
 import static com.spaziocodice.labs.solr.qty.F.narrow;
 import static com.spaziocodice.labs.solr.qty.F.narrowAsComparable;
 import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
+import static java.util.stream.Collectors.joining;
 
 /**
  * A {@link QParserPlugin} which produces a boost query according with the detected quantities within a query string.
@@ -38,17 +39,19 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
                     final EquivalenceTable equivalenceTable,
                     final Unit unit,
                     final QuantityOccurrence detected) {
-                unit.getVariantByName(
-                        detected.unit()).ifPresent(
+                unit.getVariantByName(detected.unit()).ifPresent(
                                 variant -> {
                                     final QuantityOccurrence occurrence =
                                             newQuantityOccurrence(
                                                     equivalenceTable.equivalent(variant.refName(), detected.amount()),
                                                     unit.name(),
-                                                    unit.fieldName());
+                                                    unit.fieldNames());
                                     addLiteralQuery(unit, buffer, occurrence);
-                                    gap(unit.fieldName()).ifPresent(gap -> addRangeQuery(gap, buffer, occurrence));
-                        });
+                                    unit.fieldNames().stream()
+                                            .map(unit::gap)
+                                            .filter(gap -> gap.y.isPresent())
+                                            .forEach(gap -> addRangeQuery(gap.x, gap.y.get(), buffer, occurrence));
+                                });
             }
 
             @Override
@@ -71,12 +74,16 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
      * @param occurrence the quantity instance occurrence.
      */
     private void addLiteralQuery(final Unit unit, final StringBuilder builder, final QuantityOccurrence occurrence) {
-        builder
-            .append(unit.fieldName())
-            .append(":")
-            .append(occurrence.amount());
-        unit.boost().ifPresent(boost -> builder.append("^").append(boost));
-        builder.append(" ");
+        builder.append(
+                unit.fieldNames().stream()
+                    .map(fieldName -> {
+                        final StringBuilder bq = new StringBuilder()
+                            .append(fieldName)
+                            .append(":")
+                            .append(occurrence.amount());
+                        unit.boost(fieldName).ifPresent(boost -> bq.append("^").append(boost));
+                        return bq;
+                    }).collect(joining( " ", "", " ")));
     }
 
     /**
@@ -88,6 +95,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
      * @return the same query buffer with the new filter definition.
      */
     private StringBuilder addRangeQuery(
+            final String fieldName,
             final Unit.Gap gap,
             final StringBuilder builder,
             final QuantityOccurrence occurrence) {
@@ -124,7 +132,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
         }
 
         return builder
-                .append(occurrence.fieldName())
+                .append(fieldName)
                 .append(":[")
                 .append(leftBound)
                 .append(" TO ")

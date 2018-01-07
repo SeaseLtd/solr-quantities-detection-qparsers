@@ -2,7 +2,9 @@ package com.spaziocodice.labs.solr.qty.domain;
 
 import java.util.*;
 
-import static java.util.Optional.*;
+import static java.util.Arrays.stream;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
  * A unit.
@@ -77,10 +79,10 @@ public class Unit {
         final GapMode mode;
 
         /**
-         * Builds a new gap configuration with the given data.
+         * Builds a new defaultGap configuration with the given data.
          *
-         * @param value the gap value.
-         * @param mode the gap mode.
+         * @param value the defaultGap value.
+         * @param mode the defaultGap mode.
          * @see GapMode
          */
         Gap(final Number value, final GapMode mode) {
@@ -89,74 +91,101 @@ public class Unit {
         }
 
         /**
-         * Returns the value of this gap instance.
+         * Returns the value of this defaultGap instance.
          *
-         * @return the value of this gap instance.
+         * @return the value of this defaultGap instance.
          */
         public Number value() {
             return value;
         }
 
         /**
-         * Returns the mode of this gap instance.
+         * Returns the mode of this defaultGap instance.
          *
-         * @return the mode of this gap instance.
+         * @return the mode of this defaultGap instance.
          */
         public GapMode mode() {
             return mode;
         }
     }
 
-    private final String fieldName;
+    private final List<String> fieldNames;
     private final String name;
-    private final Optional<Float> boost;
+    private Float defaultBoost;
+    private final Map<String, Float> boostOverrideMap = new HashMap<>();
+
 
     private Set<Variant> variants = new HashSet<>();
-    private Gap gap;
+    private Gap defaultGap;
+    private final Map<String, Gap> gapOverrideMap = new HashMap<>();
     private final Variant itself;
 
     /**
      * Builds a new unit with the given data.
      *
-     * @param fieldName the (schema) field name associated with this unit.
+     * @param fieldNameDef the (schema) field name (s) associated with this unit.
      * @param name the unit name.
-     * @param boost the optional boost associated with this unit.
      */
-    public Unit(final String fieldName, final String name, final Float boost) {
-        this.fieldName = fieldName;
+    public Unit(final String fieldNameDef, final String name) {
+        this.fieldNames =
+                stream(fieldNameDef.split(","))
+                    .filter(fname -> fname != null && fname.trim().length() > 0)
+                    .map(String::trim)
+                    .collect(toList());
         this.name = name;
-        this.boost = boost == null || boost.equals(1f) ? empty() : of(boost);
         this.itself = new Variant(name, Collections.emptyList());
     }
 
+    public void setDefaultBoost(final float value) {
+        this.defaultBoost = value == 1f  || value == 0f ? null : value;
+    }
+
+    public void addBoost(final String fieldName, final float value) {
+        if (value > 0f && value != 1f) {
+            boostOverrideMap.put(fieldName, value);
+        }
+    }
+
     /**
-     * Associates a new gap with this unit.
+     * Associates a new default defaultGap with this unit.
      *
-     * @param value the gap value.
-     * @param mode the gap mode.
+     * @param value the defaultGap value.
+     * @param mode the defaultGap mode.
      */
     public void setGap(final Number value, final String mode) {
-        this.gap = new Gap(value, GapMode.valueOf(mode));
+        this.defaultGap = new Gap(value, GapMode.valueOf(mode));
     }
 
     /**
-     * Returns the gap associated with this unit.
-     * Note that an Optional is returned, meaning that a gap couldn't have been defined for this unit.
+     * Associates a new defaultGap with this a specific fieldname belonging to this unit.
      *
-     * @return the gap associated with this unit.
+     * @param fieldName the field name.
+     * @param value the defaultGap value.
+     * @param mode the defaultGap mode.
      */
-    public Optional<Gap> gap() {
-        return ofNullable(gap);
+    public void addGap(final String fieldName, final Number value, final String mode) {
+        gapOverrideMap.put(fieldName, new Gap(value, GapMode.valueOf(mode)));
     }
 
     /**
-     * Returns the boost associated with this unit.
-     * Note that an Optional is returned, meaning that a boost couldn't have been defined for this unit.
+     * Returns the defaultGap associated with this unit.
+     * Note that an Optional is returned, meaning that a defaultGap couldn't have been defined for this unit.
      *
-     * @return the boost associated with this unit.
+     * @param fieldName the field name, owner of the defaultGap we are looking for
+     * @return the defaultGap associated with this unit.
      */
-    public Optional<Float> boost() {
-        return boost;
+    public Pair<String, Optional<Gap>> gap(final String fieldName) {
+        return new Pair(fieldName, ofNullable(gapOverrideMap.getOrDefault(fieldName, defaultGap)));
+    }
+
+    /**
+     * Returns the defaultBoost associated with this unit.
+     * Note that an Optional is returned, meaning that a defaultBoost couldn't have been defined for this unit.
+     *
+     * @return the defaultBoost associated with this unit.
+     */
+    public Optional<Float> boost(final String fieldName) {
+        return ofNullable(boostOverrideMap.getOrDefault(fieldName, defaultBoost));
     }
 
     /**
@@ -179,12 +208,12 @@ public class Unit {
     }
 
     /**
-     * Returns the field name associated with this unit.
+     * Returns the field names associated with this unit.
      *
-     * @return the field name associated with this unit.
+     * @return the field names associated with this unit.
      */
-    public String fieldName() {
-        return fieldName;
+    public List<String> fieldNames() {
+        return fieldNames;
     }
 
     /**
