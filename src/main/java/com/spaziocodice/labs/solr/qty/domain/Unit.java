@@ -13,6 +13,9 @@ import static java.util.stream.Collectors.toList;
  * @since 1.0
  */
 public class Unit {
+
+    public final static Unit NULL_UNIT = new Unit("", "");
+
     /**
      * A unit variant.
      *

@@ -78,8 +78,8 @@ public class QuantityDetectionQParserTestCase {
         data.put("  100 lt ", "*:*");
 
         data.forEach((input, expected) -> {
-                    final StringBuilder query = new StringBuilder(input);
-                    assertEquals(expected, cut.buildQuery(cut.queryBuilder(query), query));
+                    final StringBuilder query = new StringBuilder(" " + input +  " ");
+                    assertEquals(">" + query.toString() + "<", expected, cut.buildQuery(cut.queryBuilder(query), query));
                 });
     }
 
@@ -91,7 +91,7 @@ public class QuantityDetectionQParserTestCase {
         data.put("100lt 234lt 888 lt 992 lt", "*:*");
 
         data.forEach((input, expected) -> {
-            final StringBuilder query = new StringBuilder(input);
+            final StringBuilder query = new StringBuilder(" " + input + " ");
             assertEquals(expected, cut.buildQuery(cut.queryBuilder(query), query));
         });
     }

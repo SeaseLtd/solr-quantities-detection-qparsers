@@ -43,6 +43,7 @@ public class EquivalencesTestCase {
 
         bq.init(mock(NamedList.class));
         bq.inform(mock(ResourceLoader.class));
+
         bf.init(mock(NamedList.class));
         bf.inform(mock(ResourceLoader.class));
     }
