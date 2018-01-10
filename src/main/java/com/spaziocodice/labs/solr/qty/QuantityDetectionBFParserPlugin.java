@@ -53,7 +53,7 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
 
             @Override
             public String product() {
-                return buffer.length() > 0 ? buffer.toString() : "1";
+                return buffer.length() > 0 ? buffer.toString().trim() : "1";
             }
 
             @Override

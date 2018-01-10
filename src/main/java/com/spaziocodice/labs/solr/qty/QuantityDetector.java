@@ -2,6 +2,7 @@ package com.spaziocodice.labs.solr.qty;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spaziocodice.labs.solr.qty.domain.AssumptionTable;
 import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
 import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
 import com.spaziocodice.labs.solr.qty.domain.Unit;
@@ -17,8 +18,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -35,7 +40,7 @@ import static java.util.stream.StreamSupport.stream;
  * @since 1.0
  */
 public abstract class QuantityDetector extends QParserPlugin implements ResourceLoaderAware {
-    private Unit unit;
+    private final static Pattern NUMBERS = Pattern.compile("-?\\d+\\.?\\d*\\s");
 
     /**
      * Query builder.
@@ -79,6 +84,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     private List<Unit> units;
 
     private EquivalenceTable equivalenceTable;
+    private AssumptionTable assumptionTable;
 
     /**
      * Completes the initialization of this component by loading the provided configuration.
@@ -101,7 +107,8 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                             });
                     return forms.stream().map(form -> new SimpleEntry<>(form, unit.fieldNames()));})
                 .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue));
-        equivalenceTable = new EquivalenceTable(equivalenceTable(configuration));
+        equivalenceTable = equivalenceTable(configuration);
+        assumptionTable = assumptionTable(configuration);
     }
 
     @Override
@@ -127,6 +134,9 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @return the built query, according with the rules of the query builder associated with the qparser.
      */
     String buildQuery(final QueryBuilder builder, final StringBuilder query) {
+        final QuantityDetectionQParserPlugin factory = new QuantityDetectionQParserPlugin();
+        final QueryBuilder helper = factory.queryBuilder(new StringBuilder(query));
+
         variantsMap
           .forEach((variant, fieldNames) ->
               unit(fieldNames)
@@ -135,19 +145,47 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                           .forEach(unitOffset ->
                               startIndexOfAmount(query, unitOffset)
                                   .ifPresent(
-                                    amountOffset ->
+                                    amountOffset -> {
+                                        final QuantityOccurrence occurrence =
+                                            newQuantityOccurrence(
+                                                query.substring(amountOffset, unitOffset).contains(".")
+                                                        ? parseDouble(query.substring(amountOffset, unitOffset).trim())
+                                                        : parseInt(query.substring(amountOffset, unitOffset).trim()),
+                                                variant,
+                                                fieldNames,
+                                                unitOffset,
+                                                amountOffset);
+                                        if (assumptionTable.isEnabled()) {
+                                            helper.newQuantityDetected(
+                                                    equivalenceTable,
+                                                    unit,
+                                                    occurrence);
+                                        }
+
                                         builder.newQuantityDetected(
                                                 equivalenceTable,
                                                 unit,
-                                                newQuantityOccurrence(
-                                                        query.substring(amountOffset, unitOffset).contains(".")
-                                                            ? Double.parseDouble(query.substring(amountOffset, unitOffset).trim())
-                                                            : Float.parseFloat(query.substring(amountOffset, unitOffset).trim()),
-                                                        variant,
-                                                        fieldNames,
-                                                        unitOffset,
-                                                        amountOffset))))));
-        return builder.product().trim();
+                                                occurrence);
+                                    }))));
+
+        if (assumptionTable.isEnabled()) {
+            final String queryWithoutQuantities = helper.product();
+            final Matcher matcher = NUMBERS.matcher(queryWithoutQuantities);
+            while (matcher.find()) {
+                final Number amount = Float.valueOf(matcher.group());
+                final Unit unit = assumptionTable.unit(amount);
+                builder.newQuantityDetected(
+                        equivalenceTable,
+                        unit,
+                        newQuantityOccurrence(
+                                amount,
+                                unit.name(),
+                                unit.fieldNames(),
+                                -1,
+                                -1));
+            }
+        }
+        return builder.product();
     }
 
     /**
@@ -237,15 +275,16 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     }
 
     /**
-     * Finds, in the configuration, the unit associated with the given field name.
+     * Finds, in the configuration, the unit associated with the given name.
      *
-     * @param fieldName the field name.
-     * @return the unit associated with the given field name.
+     * @param name the unit name.
+     * @return the unit associated with the given name.
      */
-    private Optional<Unit> unit(final String fieldName) {
+    private Unit unitByName(final String name) {
         return units.stream()
-                .filter(unit -> unit.fieldNames().contains(fieldName))
-                .findFirst();
+                .filter(unit -> unit.name().equals(name))
+                .findFirst()
+                .orElse(Unit.NULL_UNIT);
     }
 
     /**
@@ -254,21 +293,54 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @param configuration this plugin configuration.
      * @return the equivalence table declared in the configuration.
      */
-    private Map<String, Number> equivalenceTable(final JsonNode configuration) {
-        final Map<String, Number> result = new HashMap<>();
+    private EquivalenceTable equivalenceTable(final JsonNode configuration) {
+        final Map<String, Number> rules = new HashMap<>();
         ofNullable(configuration.get("equivalence.table"))
             .ifPresent(table ->
                table.iterator().forEachRemaining(refUnit -> {
                     refUnit.fieldNames()
                             .forEachRemaining(name -> {
-                                result.put(name, 1);
+                                rules.put(name, 1);
                                 final JsonNode unitTable = refUnit.get(name);
                                 unitTable
                                         .fieldNames()
-                                        .forEachRemaining(unit -> result.put(unit, unitTable.get(unit).numberValue()));
+                                        .forEachRemaining(unit -> rules.put(unit, unitTable.get(unit).numberValue()));
                             });
                }));
-        return result;
+        return new EquivalenceTable(rules);
+    }
+
+    /**
+     * Creates and returns the assumption table as defined in configuration.
+     *
+     * @param configuration this plugin configuration.
+     * @return the assumption table declared in the configuration.
+     */
+    private AssumptionTable assumptionTable(final JsonNode configuration) {
+        final Optional<JsonNode> configEntry = ofNullable(configuration.get("assumption.table"));
+
+        final AssumptionTable table =
+                new AssumptionTable(
+                        configEntry
+                            .map(node -> node.get("default"))
+                            .map(def -> unitByName(def.asText()))
+                            .orElse(Unit.NULL_UNIT));
+        stream(
+            configEntry
+                .map(JsonNode::fields)
+                .map(iterator -> Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED))
+                .orElse(Spliterators.emptySpliterator()), false)
+        .filter(entry -> !entry.getKey().equals("default"))
+        .forEach(entry -> table.addRule(unitByName(entry.getKey()), range(entry.getValue())));
+        return table;
+    }
+
+    private AssumptionTable.Range range(final JsonNode node) {
+        final JsonNode l = node.get(0);
+        final JsonNode h = node.get(1);
+        return new AssumptionTable.Range(
+                l.asText().equals("*") ? Float.MIN_VALUE : Float.parseFloat(l.asText()),
+                h.asText().equals("*") ? Float.MAX_VALUE: Float.parseFloat(h.asText()));
     }
 
     /**
