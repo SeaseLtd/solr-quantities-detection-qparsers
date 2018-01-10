@@ -2,10 +2,7 @@ package com.spaziocodice.labs.solr.qty;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spaziocodice.labs.solr.qty.domain.AssumptionTable;
-import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
-import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
-import com.spaziocodice.labs.solr.qty.domain.Unit;
+import com.spaziocodice.labs.solr.qty.domain.*;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.analysis.util.ResourceLoaderAware;
 import org.apache.solr.common.params.SolrParams;
@@ -22,8 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
-import static java.lang.Double.parseDouble;
-import static java.lang.Integer.parseInt;
+import static java.lang.Float.parseFloat;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -138,35 +134,26 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         final QueryBuilder helper = factory.queryBuilder(new StringBuilder(query));
 
         variantsMap
-          .forEach((variant, fieldNames) ->
-              unit(fieldNames)
-                  .ifPresent(unit ->
-                      indexesOf(query, variant)
-                          .forEach(unitOffset ->
-                              startIndexOfAmount(query, unitOffset)
-                                  .ifPresent(
-                                    amountOffset -> {
-                                        final QuantityOccurrence occurrence =
-                                            newQuantityOccurrence(
-                                                query.substring(amountOffset, unitOffset).contains(".")
-                                                        ? parseDouble(query.substring(amountOffset, unitOffset).trim())
-                                                        : parseInt(query.substring(amountOffset, unitOffset).trim()),
-                                                variant,
-                                                fieldNames,
-                                                unitOffset,
-                                                amountOffset);
-                                        if (assumptionTable.isEnabled()) {
-                                            helper.newQuantityDetected(
-                                                    equivalenceTable,
-                                                    unit,
-                                                    occurrence);
-                                        }
+          .forEach((variant, fieldNames) -> {
+              final Unit unit = unit(fieldNames);
+              indexesOf(query, variant)
+                  .stream()
+                  .map(unitOffset -> new IntPair(unitOffset, startIndexOfAmount(query, unitOffset)))
+                  .filter(IntPair::isValid)
+                  .map(offsets -> newQuantityOccurrence(
+                          parseFloat(query.substring(offsets.y(), offsets.x()).trim()),
+                          variant,
+                          fieldNames,
+                          offsets.x(),
+                          offsets.y()))
+                  .forEach(occurrence -> {
+                      if (assumptionTable.isEnabled()) {
+                          helper.newQuantityDetected(equivalenceTable, unit, occurrence);
+                      }
 
-                                        builder.newQuantityDetected(
-                                                equivalenceTable,
-                                                unit,
-                                                occurrence);
-                                    }))));
+                      builder.newQuantityDetected(equivalenceTable, unit, occurrence);
+                  });
+          });
 
         if (assumptionTable.isEnabled()) {
             final String queryWithoutQuantities = helper.product();
@@ -177,12 +164,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                 builder.newQuantityDetected(
                         equivalenceTable,
                         unit,
-                        newQuantityOccurrence(
-                                amount,
-                                unit.name(),
-                                unit.fieldNames(),
-                                -1,
-                                -1));
+                        newQuantityOccurrence(amount, unit.name(), unit.fieldNames()));
             }
         }
         return builder.product();
@@ -268,10 +250,11 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @param fieldNames the field name.
      * @return the unit associated with the given field name.
      */
-    private Optional<Unit> unit(final List<String> fieldNames) {
+    private Unit unit(final List<String> fieldNames) {
         return units.stream()
                 .filter(unit -> unit.fieldNames().equals(fieldNames))
-                .findFirst();
+                .findFirst()
+                .get();
     }
 
     /**
@@ -339,8 +322,8 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         final JsonNode l = node.get(0);
         final JsonNode h = node.get(1);
         return new AssumptionTable.Range(
-                l.asText().equals("*") ? Float.MIN_VALUE : Float.parseFloat(l.asText()),
-                h.asText().equals("*") ? Float.MAX_VALUE: Float.parseFloat(h.asText()));
+                l.asText().equals("*") ? Float.MIN_VALUE : parseFloat(l.asText()),
+                h.asText().equals("*") ? Float.MAX_VALUE: parseFloat(h.asText()));
     }
 
     /**

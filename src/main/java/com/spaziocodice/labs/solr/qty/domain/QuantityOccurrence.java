@@ -54,15 +54,18 @@ public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
     }
 
     /**
-     * Creates a new {@link QuantityOccurrence}.
+     * Creates a new {@link QuantityOccurrence} with no offsets.
      *
      * @param amount the occurrence amount.
      * @param unit the associated unit.
      * @param fieldNames the field names in the schema.
      * @return a new {@link QuantityOccurrence} instance.
      */
-    public static QuantityOccurrence newQuantityOccurrence(final Number amount, final String unit, final List<String> fieldNames) {
-        return new QuantityOccurrence(amount, unit, fieldNames, -1, -1);
+    public static QuantityOccurrence newQuantityOccurrence(
+            final Number amount,
+            final String unit,
+            final List<String> fieldNames) {
+        return newQuantityOccurrence(amount, unit, fieldNames, -1, -1);
     }
 
     @Override
