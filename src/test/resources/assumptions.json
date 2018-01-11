@@ -1,0 +1,53 @@
+{
+  "units" : {
+    "height": {
+      "unit": "cm",
+      "variants": {
+        "mm": [
+          "millimeters"
+        ],
+        "cm": [
+          "centimeters"
+        ],
+        "m": [
+          "mt",
+          "meters"
+        ]
+      }
+    },
+    "capacity": {
+      "unit": "lt",
+      "variants": {
+        "cl": [
+          "centiliters"
+        ]
+      }
+    },
+    "voltage": {
+      "unit": "volt",
+      "variants": {
+        "volt": [
+          "v",
+          "volts"
+        ]
+      }
+    }
+  },
+  "equivalence.table": {
+      "cm" : {
+        "mm" : 10,
+        "m" : 0.01
+      },
+      "lt" : {
+        "cl": 100,
+        "ml": 1000
+      }
+  },
+  "assumption.table": {
+    "lt": [[0.25,0.50],[0.50,0.75]],
+    "cl": [[250,1000]],
+    "m": [[1.5,3]],
+    "cm": [[1500,3000]],
+    "default" : "volt"
+  }
+}

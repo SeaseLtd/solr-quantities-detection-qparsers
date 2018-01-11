@@ -143,10 +143,23 @@ public class Unit {
         this.defaultBoost = value == 1f  || value == 0f ? null : value;
     }
 
+    /**
+     * Adds the given boost this fieldname / unit pair.
+     *
+     * @param fieldName the field name.
+     * @param value the boost value.
+     */
     public void addBoost(final String fieldName, final float value) {
         if (value > 0f && value != 1f) {
             boostOverrideMap.put(fieldName, value);
         }
+    }
+
+    public boolean isIdentifiedBy(final String id) {
+        return id.equals(name)
+                || variants
+                        .stream()
+                        .anyMatch(variant -> variant.refName.equals(id) || variant.syn.contains(id));
     }
 
     /**

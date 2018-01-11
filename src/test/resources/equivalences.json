@@ -1,6 +1,5 @@
 {
-  "units" : [
-    {
+  "units" : {
       "capacity": {
         "unit": "lt",
         "variants": {
@@ -8,9 +7,7 @@
           "cl": ["centiliters"],
           "ml": ["milliliters"]
         }
-      }
-    },
-    {
+      },
       "height": {
         "unit": "cm",
         "variants": {
@@ -30,18 +27,15 @@
           "mode": "PIVOT"
         }
       }
+    },
+    "equivalence.table": {
+        "cm" : {
+          "mm" : 10,
+          "m" : 0.01
+        },
+        "lt" : {
+          "cl": 100,
+          "ml": 1000
+        }
     }
-  ],
-  "equivalence.table": [
-    {
-      "cm" : {
-        "mm" : 10,
-        "m" : 0.01
-      },
-      "lt" : {
-        "cl": 100,
-        "ml": 1000
-      }
-    }
-  ]
 }

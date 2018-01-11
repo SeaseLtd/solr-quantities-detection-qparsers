@@ -1,6 +1,5 @@
 {
-  "units" : [
-    {
+  "units" : {
       "height,width,depth": {
         "unit": "cm",
         "variants": {
@@ -40,11 +39,8 @@
           }
         }
       }
-    }
-  ]
-,
-  "equivalence.table": [
-    {
+    },
+    "equivalence.table": {
       "cm" : {
         "mm" : 10,
         "m" : 0.01
@@ -54,17 +50,4 @@
         "ml": 1000
       }
     }
-  ],
-  "equivalence.table": [
-    {
-      "cm" : {
-        "mm" : 10,
-        "m" : 0.01
-      },
-      "lt" : {
-        "cl": 100,
-        "ml": 1000
-      }
-    }
-  ]
 }

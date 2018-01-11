@@ -1,21 +1,19 @@
 {
-  "units" : [
-    {
-      "capacity": {
-        "unit": "lt"
-      }
+  "units" : {
+    "capacity": {
+      "unit": "lt"
     },
-    {
-      "height": {
-        "unit": "cm",
-        "variants": {
-          "cm": ["centimeters"]
-        },
-        "gap": {
-          "value": 10,
-          "mode": "MAX"
-        }
+    "height": {
+      "unit": "cm",
+      "variants": {
+        "cm": [
+          "centimeters"
+        ]
+      },
+      "gap": {
+        "value": 10,
+        "mode": "MAX"
       }
     }
-  ]
+  }
 }

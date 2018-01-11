@@ -40,6 +40,14 @@ public class QuantityDetectionQParserPlugin extends QuantityDetector {
             }
 
             @Override
+            public void newHeuristicQuantityDetected(
+                    final EquivalenceTable equivalenceTable,
+                    final Unit unit,
+                    final QuantityOccurrence occurrence) {
+                // Do nothing here
+            }
+
+            @Override
             public String product() {
                 occurrences.forEach(occurrence ->
                         buffer.delete(occurrence.indexOfAmount(), occurrence.indexOfUnit() + occurrence.unit().length()));

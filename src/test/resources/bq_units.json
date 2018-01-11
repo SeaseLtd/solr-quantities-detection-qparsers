@@ -1,20 +1,16 @@
 {
-  "units" : [
+  "units" :
     {
       "capacity": {
         "unit": "lt"
-      }
-    },
-    {
+      },
       "voltage": {
         "unit": "v",
         "variants": {
           "v": ["volt","volts"]
         },
         "boost": 1.3
-      }
-    },
-    {
+      },
       "wattage": {
         "unit": "w",
         "variants": {
@@ -25,9 +21,7 @@
           "mode": "PIVOT"
         },
         "boost": 1.3
-      }
-    },
-    {
+      },
       "height": {
         "unit": "cm",
         "variants": {
@@ -46,35 +40,27 @@
           "value": 10,
           "mode": "PIVOT"
         }
-      }
-    },
-    {
+      },
       "price_min_with_value": {
         "unit": "euro",
         "gap": {
           "value": 10,
           "mode": "MIN"
         }
-      }
-    },
-    {
+      },
       "price_max_with_value": {
         "unit": "dollars",
         "gap": {
           "value": 50,
           "mode": "MAX"
         }
-      }
-    },
-    {
+      },
       "price_min_without_value": {
         "unit": "francs",
         "gap": {
           "mode": "MIN"
         }
-      }
-    },
-    {
+      },
       "price_max_without_value": {
         "unit": "cad",
         "gap": {
@@ -82,5 +68,4 @@
         }
       }
     }
-  ]
 }

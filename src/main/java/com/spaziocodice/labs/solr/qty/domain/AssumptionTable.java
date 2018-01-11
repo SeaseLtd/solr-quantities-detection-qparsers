@@ -57,7 +57,7 @@ public class AssumptionTable {
         }
     }
 
-    private final Map<Range, Unit> table = new HashMap<>();
+    private final Map<Range, String> table = new HashMap<>();
     private final Unit defaultUnit;
 
     /**
@@ -85,7 +85,7 @@ public class AssumptionTable {
      * @param unit the {@link Unit}.
      * @param range the range.
      */
-    public void addRule(final Unit unit, Range range) {
+    public void addRule(final String unit, Range range) {
         table.putIfAbsent(range, unit);
     }
 
@@ -94,13 +94,13 @@ public class AssumptionTable {
      *
      * @param amount the input amount.
      * @return the unit associated with the given amount, according with the rules in this table.
-     */
-    public Unit unit(final Number amount) {
+    */
+    public String unitName(final Number amount) {
         return table.keySet()
                 .stream()
                 .filter(range -> range.includes(amount))
                 .map(table::get)
                 .findAny()
-                .orElse(defaultUnit);
+                .orElse(defaultUnit.name());
     }
 }

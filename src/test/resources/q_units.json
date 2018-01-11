@@ -1,9 +1,7 @@
 {
-  "units" : [
-    {
+  "units" : {
       "capacity": {
         "unit": "lt"
       }
-    }
-  ]
+  }
 }

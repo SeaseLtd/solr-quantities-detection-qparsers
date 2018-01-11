@@ -38,20 +38,35 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             public void newQuantityDetected(
                     final EquivalenceTable equivalenceTable,
                     final Unit unit,
+                    final QuantityOccurrence occurrence) {
+                onQuantityDetected(equivalenceTable, unit, occurrence);
+            }
+
+            @Override
+            public void newHeuristicQuantityDetected(
+                    final EquivalenceTable equivalenceTable,
+                    final Unit unit,
+                    final QuantityOccurrence occurrence) {
+                onQuantityDetected(equivalenceTable, unit, occurrence);
+            }
+
+            private void onQuantityDetected(
+                    final EquivalenceTable equivalenceTable,
+                    final Unit unit,
                     final QuantityOccurrence detected) {
-                unit.getVariantByName(detected.unit()).ifPresent(
-                                variant -> {
-                                    final QuantityOccurrence occurrence =
-                                            newQuantityOccurrence(
-                                                    equivalenceTable.equivalent(variant.refName(), detected.amount()),
-                                                    unit.name(),
-                                                    unit.fieldNames());
-                                    addLiteralQuery(unit, buffer, occurrence);
-                                    unit.fieldNames().stream()
-                                            .map(unit::gap)
-                                            .filter(gap -> gap.y.isPresent())
-                                            .forEach(gap -> addRangeQuery(gap.x, gap.y.get(), buffer, occurrence));
-                                });
+                unit.getVariantByName(detected.unit())
+                        .ifPresent(variant -> {
+                            final QuantityOccurrence occurrence =
+                                    newQuantityOccurrence(
+                                            equivalenceTable.equivalent(variant.refName(), detected.amount()),
+                                            unit.name(),
+                                            unit.fieldNames());
+                            addLiteralQuery(unit, buffer, occurrence);
+                            unit.fieldNames().stream()
+                                    .map(unit::gap)
+                                    .filter(gap -> gap.y.isPresent())
+                                    .forEach(gap -> addRangeQuery(gap.x, gap.y.get(), buffer, occurrence));
+                        });
             }
 
             @Override

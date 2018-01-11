@@ -58,6 +58,18 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         void newQuantityDetected(final EquivalenceTable equivalenceTable, final Unit unit, final QuantityOccurrence occurrence);
 
         /**
+         * A new quantity (i.e. amount + unit) has been detected.
+         * When this event occurs, the builder is notified through this callback
+         * with a {@link QuantityOccurrence} instance which contains all information
+         * (i.e. amount, unit, offsets) about the detected quantity.
+         *
+         * @param equivalenceTable the equivalence table.
+         * @param unit the unit associated with the detected quantity.
+         * @param occurrence the occurrence encapsulating the quantity detection.
+         */
+        void newHeuristicQuantityDetected(final EquivalenceTable equivalenceTable, final Unit unit, final QuantityOccurrence occurrence);
+
+        /**
          * Returns the built query, that is, the product of this builder.
          *
          * @return the built query, that is, the product of this builder.
@@ -156,15 +168,15 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
           });
 
         if (assumptionTable.isEnabled()) {
-            final String queryWithoutQuantities = helper.product();
+            final String queryWithoutQuantities = helper.product() + " ";
             final Matcher matcher = NUMBERS.matcher(queryWithoutQuantities);
             while (matcher.find()) {
                 final Number amount = Float.valueOf(matcher.group());
-                final Unit unit = assumptionTable.unit(amount);
-                builder.newQuantityDetected(
+                final String unitOrVariantName = assumptionTable.unitName(amount);
+                builder.newHeuristicQuantityDetected(
                         equivalenceTable,
-                        unit,
-                        newQuantityOccurrence(amount, unit.name(), unit.fieldNames()));
+                        unitByIdentifier(unitOrVariantName),
+                        newQuantityOccurrence(amount, unitOrVariantName, Collections.emptyList()));
             }
         }
         return builder.product();
@@ -271,6 +283,19 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     }
 
     /**
+     * Finds, in the configuration, the unit associated with the given identifier (name or variant).
+     *
+     * @param name the unit name.
+     * @return the unit associated with the given identifier.
+     */
+    private Unit unitByIdentifier(final String name) {
+        return units.stream()
+                .filter(unit -> unit.isIdentifiedBy(name))
+                .findFirst()
+                .orElse(Unit.NULL_UNIT);
+    }
+
+    /**
      * Returns the equivalence table declared in the configuration.
      *
      * @param configuration this plugin configuration.
@@ -280,16 +305,12 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
         final Map<String, Number> rules = new HashMap<>();
         ofNullable(configuration.get("equivalence.table"))
             .ifPresent(table ->
-               table.iterator().forEachRemaining(refUnit -> {
-                    refUnit.fieldNames()
-                            .forEachRemaining(name -> {
-                                rules.put(name, 1);
-                                final JsonNode unitTable = refUnit.get(name);
-                                unitTable
-                                        .fieldNames()
-                                        .forEachRemaining(unit -> rules.put(unit, unitTable.get(unit).numberValue()));
-                            });
-               }));
+                table.fields().forEachRemaining(entry -> {
+                     rules.put(entry.getKey(), 1);
+                     entry.getValue()
+                             .fields()
+                             .forEachRemaining(pair -> rules.put(pair.getKey(), pair.getValue().floatValue()));
+                }));
         return new EquivalenceTable(rules);
     }
 
@@ -314,14 +335,14 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                 .map(iterator -> Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED))
                 .orElse(Spliterators.emptySpliterator()), false)
         .filter(entry -> !entry.getKey().equals("default"))
-        .forEach(entry -> table.addRule(unitByName(entry.getKey()), range(entry.getValue())));
+        .forEach(entry -> entry.getValue().iterator().forEachRemaining(rangeNode -> table.addRule(entry.getKey(), range(rangeNode))));
         return table;
     }
 
     private AssumptionTable.Range range(final JsonNode node) {
-        final JsonNode l = node.get(0);
-        final JsonNode h = node.get(1);
-        return new AssumptionTable.Range(
+            final JsonNode l = node.get(0);
+            final JsonNode h = node.get(1);
+            return new AssumptionTable.Range(
                 l.asText().equals("*") ? Float.MIN_VALUE : parseFloat(l.asText()),
                 h.asText().equals("*") ? Float.MAX_VALUE: parseFloat(h.asText()));
     }
@@ -333,10 +354,10 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      * @return the units that have been configured within this instance configuration.
      */
     private List<Unit> units(final JsonNode configuration) {
-        return stream(configuration.get("units").spliterator(), false)
+        return stream(Spliterators.spliteratorUnknownSize(configuration.get("units").fields(), Spliterator.ORDERED), false)
                 .map(unitNode -> {
-                    final String fieldNames =  unitNode.fieldNames().next();
-                    final JsonNode unitCfg = unitNode.get(fieldNames);
+                    final String fieldNames =  unitNode.getKey();
+                    final JsonNode unitCfg = unitNode.getValue();
 
                     final String unitName = unitCfg.get("unit").asText();
 

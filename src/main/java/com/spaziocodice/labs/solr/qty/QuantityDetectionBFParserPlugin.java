@@ -33,12 +33,27 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
             public void newQuantityDetected(
                     final EquivalenceTable equivalenceTable,
                     final Unit unit,
+                    final QuantityOccurrence occurrence) {
+                onQuantityDetected(equivalenceTable, unit, occurrence);
+            }
+
+            @Override
+            public void newHeuristicQuantityDetected(
+                    final EquivalenceTable equivalenceTable,
+                    final Unit unit,
+                    final QuantityOccurrence occurrence) {
+                onQuantityDetected(equivalenceTable, unit, occurrence);
+            }
+
+            private void onQuantityDetected(
+                    final EquivalenceTable equivalenceTable,
+                    final Unit unit,
                     final QuantityOccurrence detected) {
 
                 unit.getVariantByName(detected.unit())
                         .ifPresent(variant -> {
                             final Number amount = equivalenceTable.equivalent(variant.refName(), detected.amount());
-                            detected.fieldNames()
+                            unit.fieldNames()
                                     .stream()
                                     .map(fieldName ->
                                             buffer
