@@ -64,7 +64,7 @@ public class QuantityDetectionBQParserTestCase {
 
         stream(noQuantityQueries)
                 .map(StringBuilder::new)
-                .forEach(query -> assertEquals("*:*", cut.buildQuery(cut.queryBuilder(query), query)));
+                .forEach(query -> assertEquals("", cut.buildQuery(cut.queryBuilder(query), query)));
     }
 
     @Test

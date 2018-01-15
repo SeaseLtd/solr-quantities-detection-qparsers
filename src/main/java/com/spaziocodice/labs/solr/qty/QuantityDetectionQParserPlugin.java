@@ -3,6 +3,7 @@ package com.spaziocodice.labs.solr.qty;
 import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
 import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
 import com.spaziocodice.labs.solr.qty.domain.Unit;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.ExtendedDismaxQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
@@ -19,9 +20,13 @@ import java.util.TreeSet;
 public class QuantityDetectionQParserPlugin extends QuantityDetector {
     private ExtendedDismaxQParserPlugin qParser;
 
+    public final static String REMOVE_ORPHAN_AMOUNTS_PARAM_NAME = "removeOrphanAmounts";
+    private boolean removeOrphanAmounts;
+
     @Override
     public void init(final NamedList args) {
         super.init(args);
+        removeOrphanAmounts = SolrParams.toSolrParams(args).getBool(REMOVE_ORPHAN_AMOUNTS_PARAM_NAME, false);
         this.qParser = new ExtendedDismaxQParserPlugin();
     }
 
@@ -44,13 +49,15 @@ public class QuantityDetectionQParserPlugin extends QuantityDetector {
                     final EquivalenceTable equivalenceTable,
                     final Unit unit,
                     final QuantityOccurrence occurrence) {
-                // Do nothing here
+                if (removeOrphanAmounts) {
+                    occurrences.add(occurrence);
+                }
             }
 
             @Override
             public String product() {
                 occurrences.forEach(occurrence ->
-                        buffer.delete(occurrence.indexOfAmount(), occurrence.indexOfUnit() + occurrence.unit().length()));
+                        buffer.delete(occurrence.startOffset(), occurrence.endOffset()));
                 final String result = buffer.toString().trim();
                 return result.isEmpty() ? "*:*" : result;
             }

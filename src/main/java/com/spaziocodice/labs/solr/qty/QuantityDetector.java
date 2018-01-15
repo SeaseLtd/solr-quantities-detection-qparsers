@@ -153,7 +153,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                   .map(unitOffset -> new IntPair(unitOffset, startIndexOfAmount(query, unitOffset)))
                   .filter(IntPair::isValid)
                   .map(offsets -> newQuantityOccurrence(
-                          parseFloat(query.substring(offsets.y(), offsets.x()).trim()),
+                          query.substring(offsets.y(), offsets.x()).trim(),
                           variant,
                           fieldNames,
                           offsets.x(),
@@ -172,11 +172,12 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
             final Matcher matcher = NUMBERS.matcher(queryWithoutQuantities);
             while (matcher.find()) {
                 final Number amount = Float.valueOf(matcher.group());
+
                 final String unitOrVariantName = assumptionTable.unitName(amount);
                 builder.newHeuristicQuantityDetected(
                         equivalenceTable,
                         unitByIdentifier(unitOrVariantName),
-                        newQuantityOccurrence(amount, unitOrVariantName, Collections.emptyList()));
+                        newQuantityOccurrence(matcher.group().trim(), unitOrVariantName, Collections.emptyList(), -1, matcher.start()));
             }
         }
         return builder.product();
