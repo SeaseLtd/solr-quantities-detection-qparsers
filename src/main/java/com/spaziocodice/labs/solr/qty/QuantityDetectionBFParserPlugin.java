@@ -3,6 +3,7 @@ package com.spaziocodice.labs.solr.qty;
 import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
 import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
 import com.spaziocodice.labs.solr.qty.domain.Unit;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.FunctionQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
@@ -25,7 +26,12 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
     }
 
     @Override
-    QueryBuilder queryBuilder(final StringBuilder query) {
+    public QParserPlugin qparserPlugin() {
+        return qParser;
+    }
+
+    @Override
+    QueryBuilder queryBuilder(final StringBuilder query, final SolrParams params) {
         return new QueryBuilder() {
             final StringBuilder buffer = new StringBuilder();
 
@@ -61,7 +67,13 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
                                                 .append(fieldName)
                                                 .append(", ")
                                                 .append(amount)
-                                                .append(")),1,1000,1000) "))
+                                                .append(")),")
+                                                .append(params.getInt("m", 1))
+                                                .append(",")
+                                                .append(params.getInt("a", 1000))
+                                                .append(",")
+                                                .append(params.getInt("b", 1000))
+                                                .append(") "))
                                     .collect(joining(" ", " ", " "));
                         });
             }
@@ -69,11 +81,6 @@ public class QuantityDetectionBFParserPlugin extends QuantityDetector {
             @Override
             public String product() {
                 return buffer.length() > 0 ? buffer.toString().trim() : "1";
-            }
-
-            @Override
-            public QParserPlugin qparserPlugin() {
-                return qParser;
             }
         };
     }

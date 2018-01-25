@@ -31,7 +31,12 @@ public class QuantityDetectionQParserPlugin extends QuantityDetector {
     }
 
     @Override
-    QueryBuilder queryBuilder(final StringBuilder query) {
+    public QParserPlugin qparserPlugin() {
+        return qParser;
+    }
+
+    @Override
+    QueryBuilder queryBuilder(final StringBuilder query, final SolrParams params) {
         return new QueryBuilder() {
             final Set<QuantityOccurrence> occurrences = new TreeSet<>();
             final StringBuilder buffer = new StringBuilder(query);
@@ -60,11 +65,6 @@ public class QuantityDetectionQParserPlugin extends QuantityDetector {
                         buffer.delete(occurrence.startOffset(), occurrence.endOffset()));
                 final String result = buffer.toString().trim();
                 return result.isEmpty() ? "*:*" : result;
-            }
-
-            @Override
-            public QParserPlugin qparserPlugin() {
-                return qParser;
             }
         };
     }

@@ -1,5 +1,7 @@
 package com.spaziocodice.labs.solr.qty;
 
+import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.search.QParserPlugin;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,7 +26,12 @@ public class QuantityDetectorTestCase {
     public void setUp() {
         cut = new QuantityDetector() {
             @Override
-            QueryBuilder queryBuilder(StringBuilder query) {
+            QueryBuilder queryBuilder(StringBuilder query, SolrParams params) {
+                return null;
+            }
+
+            @Override
+            QParserPlugin qparserPlugin() {
                 return null;
             }
         };

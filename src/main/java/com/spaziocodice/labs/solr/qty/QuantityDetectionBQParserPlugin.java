@@ -3,6 +3,7 @@ package com.spaziocodice.labs.solr.qty;
 import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
 import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
 import com.spaziocodice.labs.solr.qty.domain.Unit;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.LuceneQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
@@ -29,8 +30,14 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
         this.qParser = new LuceneQParserPlugin();
     }
 
+
     @Override
-    QueryBuilder queryBuilder(final StringBuilder query) {
+    public QParserPlugin qparserPlugin() {
+        return qParser;
+    }
+
+    @Override
+    QueryBuilder queryBuilder(final StringBuilder query, final SolrParams params) {
         return new QueryBuilder() {
             final StringBuilder buffer = new StringBuilder();
 
@@ -72,11 +79,6 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             @Override
             public String product() {
                 return buffer.length() > 0 ? buffer.toString().trim() : "";
-            }
-
-            @Override
-            public QParserPlugin qparserPlugin() {
-                return qParser;
             }
         };
     }

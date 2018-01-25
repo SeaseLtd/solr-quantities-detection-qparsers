@@ -3,6 +3,8 @@ package com.spaziocodice.labs.solr.qty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.lucene.analysis.util.ResourceLoader;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.FunctionQParserPlugin;
 import org.junit.Before;
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.mock;
  */
 public class QuantityDetectionBFParserTestCase {
     private QuantityDetectionBFParserPlugin cut;
+    private SolrParams params;
 
     @Before
     public void setUp() throws Exception {
@@ -38,6 +41,8 @@ public class QuantityDetectionBFParserTestCase {
             }
         };
 
+        params = new ModifiableSolrParams();
+
         cut.init(mock(NamedList.class));
         cut.inform(mock(ResourceLoader.class));
     }
@@ -47,7 +52,7 @@ public class QuantityDetectionBFParserTestCase {
      */
     @Test
     public void queryParser() {
-        assertSame(FunctionQParserPlugin.class, cut.queryBuilder(new StringBuilder()).qparserPlugin().getClass());
+        assertSame(FunctionQParserPlugin.class, cut.qparserPlugin().getClass());
     }
 
     /**
@@ -62,45 +67,38 @@ public class QuantityDetectionBFParserTestCase {
                 "ABCDlt or ABCD lt isn't a quantity."
         };
 
-        stream(noQuantityQueries)
-                .map(StringBuilder::new)
-                .forEach(query -> assertEquals("1", cut.buildQuery(cut.queryBuilder(query), query)));
+        stream(noQuantityQueries).forEach(query -> assertEquals("1", cut.buildQuery(query, params)));
     }
 
     @Test
     public void oneQuantityWithoutGap() {
-        final List<String> data = asList(
-                "There a 100cm quantity here",
-                "There a 100 cm quantity here",
-                "100cm",
-                "100 cm",
-                "  100 cm ");
-
-        data.stream()
-                .map(StringBuilder::new)
-                .forEach(
-                        query ->
-                            assertEquals(
-                                    "recip(abs(sub(height, 100)),1,1000,1000)",
-                                    cut.buildQuery(cut.queryBuilder(query), query)));
+        asList(
+            "There a 100cm quantity here",
+            "There a 100 cm quantity here",
+            "100cm",
+            "100 cm",
+            "  100 cm ")
+            .forEach(
+                    query ->
+                        assertEquals(
+                                query,
+                                "recip(abs(sub(height, 100)),1,1000,1000)",
+                                cut.buildQuery(query, params)));
     }
 
     @Test
     public void yetOneQuantity() {
-        final List<String> data = asList(
-                "There a 100lt quantity here",
-                "There a 100 lt quantity here",
-                "100lt",
-                "100 lt",
-                "  100 lt ");
-
-        data.stream()
-                .map(StringBuilder::new)
-                .forEach(
-                        query ->
-                            assertEquals(
-                                    "recip(abs(sub(capacity, 100)),1,1000,1000)",
-                                    cut.buildQuery(cut.queryBuilder(query), query)));
+        asList(
+            "There a 100lt quantity here",
+            "There a 100 lt quantity here",
+            "100lt",
+            "100 lt",
+            "  100 lt ")
+            .forEach(
+                    query ->
+                        assertEquals(
+                                "recip(abs(sub(capacity, 100)),1,1000,1000)",
+                                cut.buildQuery(query, params)));
     }
 
 
@@ -111,10 +109,7 @@ public class QuantityDetectionBFParserTestCase {
         data.put("129 lt. There a 10230 lt, another 553lt here, and another 293 lt here. Other 992 lt", "recip(abs(sub(capacity, 129)),1,1000,1000) recip(abs(sub(capacity, 10230)),1,1000,1000) recip(abs(sub(capacity, 553)),1,1000,1000) recip(abs(sub(capacity, 293)),1,1000,1000) recip(abs(sub(capacity, 992)),1,1000,1000)");
         data.put("100lt 234lt 888 lt 992 lt", "recip(abs(sub(capacity, 100)),1,1000,1000) recip(abs(sub(capacity, 234)),1,1000,1000) recip(abs(sub(capacity, 888)),1,1000,1000) recip(abs(sub(capacity, 992)),1,1000,1000)");
 
-        data.forEach((input, expected) -> {
-            final StringBuilder query = new StringBuilder(input);
-            assertEquals(expected, cut.buildQuery(cut.queryBuilder(query), query));
-        });
+        data.forEach((input, expected) ->  assertEquals(input, expected, cut.buildQuery(input, params)));
     }
 
     @Test
@@ -124,9 +119,6 @@ public class QuantityDetectionBFParserTestCase {
         data.put("129 lt. There a 10230 cm, another 553cm here, and another 293 lt here. Other 992 cm", "recip(abs(sub(capacity, 129)),1,1000,1000) recip(abs(sub(capacity, 293)),1,1000,1000) recip(abs(sub(height, 10230)),1,1000,1000) recip(abs(sub(height, 553)),1,1000,1000) recip(abs(sub(height, 992)),1,1000,1000)");
         data.put("100lt 234lt 888 cm 992 lt", "recip(abs(sub(capacity, 100)),1,1000,1000) recip(abs(sub(capacity, 234)),1,1000,1000) recip(abs(sub(capacity, 992)),1,1000,1000) recip(abs(sub(height, 888)),1,1000,1000)");
 
-        data.forEach((input, expected) -> {
-            final StringBuilder query = new StringBuilder(input);
-            assertEquals(expected, cut.buildQuery(cut.queryBuilder(query), query));
-        });
+        data.forEach((input, expected) -> assertEquals(input, expected, cut.buildQuery(input, params)));
     }
 }

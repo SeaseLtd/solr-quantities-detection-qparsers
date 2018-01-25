@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
 import static java.lang.Float.parseFloat;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -75,15 +76,6 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
          * @return the built query, that is, the product of this builder.
          */
         String product();
-
-        /**
-         * Returns the internal {@link QParserPlugin} that will be used for
-         * parsing the built query.
-         *
-         * @return the internal {@link QParserPlugin} that will be used for
-         * parsing the built query.
-         */
-        QParserPlugin qparserPlugin();
     }
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -125,25 +117,22 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
             return null;
         }
 
-        final StringBuilder query = new StringBuilder(" ").append(qstr.toLowerCase()).append(" ");
-        final QueryBuilder builder = queryBuilder(query);
-
-        final String product = buildQuery(builder, query);
-        debug(qstr, product);
-
-        return builder.qparserPlugin().createParser(product, localParams, params, req);
+        return qparserPlugin().createParser(buildQuery(qstr, params), localParams, params, req);
     }
 
     /**
      * Executes the build query process.
      *
-     * @param builder the query builder, which depends on the specific qparser.
-     * @param query the input query (as a {@link StringBuilder}).
+     * @param qstr the incoming query string.
+     * @param params the request parameters.
      * @return the built query, according with the rules of the query builder associated with the qparser.
      */
-    String buildQuery(final QueryBuilder builder, final StringBuilder query) {
+    String buildQuery(final String qstr, final SolrParams params) {
+        final StringBuilder query = new StringBuilder(" ").append(qstr.toLowerCase().trim()).append(" ");
+        final QueryBuilder builder = queryBuilder(query, params);
+
         final QuantityDetectionQParserPlugin factory = new QuantityDetectionQParserPlugin();
-        final QueryBuilder helper = factory.queryBuilder(new StringBuilder(query));
+        final QueryBuilder helper = factory.queryBuilder(new StringBuilder(query), params);
 
         variantsMap
           .forEach((variant, fieldNames) -> {
@@ -177,7 +166,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                 builder.newHeuristicQuantityDetected(
                         equivalenceTable,
                         unitByIdentifier(unitOrVariantName),
-                        newQuantityOccurrence(matcher.group().trim(), unitOrVariantName, Collections.emptyList(), -1, matcher.start()));
+                        newQuantityOccurrence(matcher.group().trim(), unitOrVariantName, emptyList(), -1, matcher.start()));
             }
         }
         return builder.product();
@@ -186,10 +175,20 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
     /**
      * Returns the query builder instance associated with this detector.
      *
-     * @param query the input query (as a {@link StringBuilder}.
+     * @param query the input query (as a {@link StringBuilder}
+     * @param params the reqeuest parameters.
      * @return the query builder instance associated with this detector.
      */
-    abstract QueryBuilder queryBuilder(StringBuilder query);
+    abstract QueryBuilder queryBuilder(StringBuilder query, final SolrParams params);
+
+    /**
+     * Returns the internal {@link QParserPlugin} that will be used for
+     * parsing the built query.
+     *
+     * @return the internal {@link QParserPlugin} that will be used for
+     * parsing the built query.
+     */
+    abstract QParserPlugin qparserPlugin();
 
     /**
      * Internal method for detecting the start offset of the (potential) detected quantity.
@@ -235,7 +234,7 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
      */
     final List<Integer> indexesOf(final StringBuilder query, final String variant) {
         if (query.length() <= 2) {
-            return Collections.emptyList();
+            return emptyList();
         }
 
         if (query.charAt(0) != ' ') {
@@ -405,18 +404,6 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
                                                 .collect(toList()))));
                     return unit;
                 }).collect(toList());
-    }
-
-    /**
-     * Logs out a (2-parts) message in DEBUG level.
-     *
-     * @param part1 the first message part.
-     * @param part2 the second message part.
-     */
-    private void debug(final String part1, final String part2) {
-        if (logger.isDebugEnabled()) {
-            logger.debug(part1 + " => " + part2);
-        }
     }
 
     /**
