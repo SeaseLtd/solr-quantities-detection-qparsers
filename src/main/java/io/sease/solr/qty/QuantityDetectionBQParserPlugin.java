@@ -1,16 +1,15 @@
-package com.spaziocodice.labs.solr.qty;
+package io.sease.solr.qty;
 
-import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
-import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
-import com.spaziocodice.labs.solr.qty.domain.Unit;
+import io.sease.solr.qty.domain.EquivalenceTable;
+import io.sease.solr.qty.domain.QuantityOccurrence;
+import io.sease.solr.qty.domain.Unit;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.LuceneQParserPlugin;
 import org.apache.solr.search.QParserPlugin;
 
-import static com.spaziocodice.labs.solr.qty.F.narrow;
-import static com.spaziocodice.labs.solr.qty.F.narrowAsComparable;
-import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
+import static io.sease.solr.qty.F.narrow;
+import static io.sease.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
 import static java.util.stream.Collectors.joining;
 
 /**
@@ -117,7 +116,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             final StringBuilder builder,
             final QuantityOccurrence occurrence) {
 
-        final Comparable detectedAmount = narrowAsComparable(occurrence.amount());
+        final Comparable detectedAmount = F.narrowAsComparable(occurrence.amount());
 
         Number leftBound;
         Number rightBound;
@@ -126,7 +125,7 @@ public class QuantityDetectionBQParserPlugin extends QuantityDetector {
             case MAX:
                 leftBound =
                         gap.value() != null
-                            ? detectedAmount.compareTo(narrowAsComparable(gap.value())) >= 0
+                            ? detectedAmount.compareTo(F.narrowAsComparable(gap.value())) >= 0
                                 ? narrow(occurrence.amount().floatValue() - gap.value().floatValue())
                                 : 0
                             : 0;

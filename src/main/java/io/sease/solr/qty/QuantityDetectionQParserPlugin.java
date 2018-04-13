@@ -1,8 +1,8 @@
-package com.spaziocodice.labs.solr.qty;
+package io.sease.solr.qty;
 
-import com.spaziocodice.labs.solr.qty.domain.EquivalenceTable;
-import com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence;
-import com.spaziocodice.labs.solr.qty.domain.Unit;
+import io.sease.solr.qty.domain.EquivalenceTable;
+import io.sease.solr.qty.domain.QuantityOccurrence;
+import io.sease.solr.qty.domain.Unit;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.search.ExtendedDismaxQParserPlugin;

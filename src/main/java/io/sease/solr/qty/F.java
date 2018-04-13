@@ -1,4 +1,4 @@
-package com.spaziocodice.labs.solr.qty;
+package io.sease.solr.qty;
 
 /**
  * Utilities collection.

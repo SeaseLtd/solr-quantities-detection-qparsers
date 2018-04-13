@@ -1,9 +1,9 @@
-package com.spaziocodice.labs.solr.qty.domain;
+package io.sease.solr.qty.domain;
+
+import io.sease.solr.qty.F;
 
 import java.util.Collections;
 import java.util.Map;
-
-import static com.spaziocodice.labs.solr.qty.F.narrow;
 
 /**
  * A collection of equivalence rules for converting amounts of different units.
@@ -33,6 +33,6 @@ public class EquivalenceTable {
      */
     public Number equivalent(final String unitName, final Number amount ) {
         final float factor = table.getOrDefault(unitName, 1).floatValue();
-        return narrow(factor > 0 ? amount.floatValue() / factor : amount.floatValue() * factor);
+        return F.narrow(factor > 0 ? amount.floatValue() / factor : amount.floatValue() * factor);
     }
 }

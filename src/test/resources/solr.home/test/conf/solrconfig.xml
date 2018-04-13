@@ -67,9 +67,9 @@
         </lst>
     </requestHandler>
 
-    <queryParser name="qty" class="com.spaziocodice.labs.solr.qty.QuantityDetectionQParserPlugin"/>
-    <queryParser name="bqty" class="com.spaziocodice.labs.solr.qty.QuantityDetectionBQParserPlugin"/>
-    <queryParser name="bfqty" class="com.spaziocodice.labs.solr.qty.QuantityDetectionBFParserPlugin"/>
+    <queryParser name="qty" class="io.sease.solr.qty.QuantityDetectionQParserPlugin"/>
+    <queryParser name="bqty" class="io.sease.solr.qty.QuantityDetectionBQParserPlugin"/>
+    <queryParser name="bfqty" class="io.sease.solr.qty.QuantityDetectionBFParserPlugin"/>
 
     <admin>
         <defaultQuery>*:*</defaultQuery>

@@ -1,4 +1,4 @@
-package com.spaziocodice.labs.solr.qty.domain;
+package io.sease.solr.qty.domain;
 
 import java.util.List;
 
@@ -166,14 +166,5 @@ public class QuantityOccurrence implements Comparable<QuantityOccurrence> {
      */
     public Number amount() {
         return amount;
-    }
-
-    /**
-     * Returns the field names associated with this occurrence.
-     *
-     * @return the field names associated with this occurrence.
-     */
-    public List<String> fieldNames() {
-        return fieldNames;
     }
 }

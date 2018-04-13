@@ -1,4 +1,4 @@
-package com.spaziocodice.labs.solr.qty;
+package io.sease.solr.qty;
 
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.search.QParserPlugin;

@@ -1,4 +1,4 @@
-package com.spaziocodice.labs.solr.qty;
+package io.sease.solr.qty;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

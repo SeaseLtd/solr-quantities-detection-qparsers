@@ -1,16 +1,14 @@
-package com.spaziocodice.labs.solr.qty;
+package io.sease.solr.qty;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.spaziocodice.labs.solr.qty.domain.*;
+import io.sease.solr.qty.domain.*;
 import org.apache.lucene.analysis.util.ResourceLoader;
 import org.apache.lucene.analysis.util.ResourceLoaderAware;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
@@ -18,7 +16,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.spaziocodice.labs.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
+import static io.sease.solr.qty.domain.QuantityOccurrence.newQuantityOccurrence;
 import static java.lang.Float.parseFloat;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.unmodifiableList;
@@ -77,8 +75,6 @@ public abstract class QuantityDetector extends QParserPlugin implements Resource
          */
         String product();
     }
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private Map<String, List<String>> variantsMap;
     private List<Unit> units;

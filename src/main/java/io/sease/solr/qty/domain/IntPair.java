@@ -1,4 +1,4 @@
-package com.spaziocodice.labs.solr.qty.domain;
+package io.sease.solr.qty.domain;
 
 import java.util.OptionalInt;
 
