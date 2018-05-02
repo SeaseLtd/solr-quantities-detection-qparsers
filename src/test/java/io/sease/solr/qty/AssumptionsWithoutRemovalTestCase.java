@@ -116,7 +116,7 @@ public class AssumptionsWithoutRemovalTestCase {
     @Test
     public void noDetectedAmount() {
         final Map<String, List<String>> data = new HashMap<>();
-        data.put(" fridge model no. 1317abx ", asList("fridge model no. 1317abx","", "1"));
+        data.put(" fridge model no. 1317abx ", asList("fridge model no. 1317abx","*:*", "1"));
 
         data.forEach((query, expected) -> {
             assertEquals(

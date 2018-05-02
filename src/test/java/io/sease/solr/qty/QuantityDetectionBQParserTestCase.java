@@ -64,7 +64,7 @@ public class QuantityDetectionBQParserTestCase {
                 "ABCDlt or ABCD lt isn't a quantity."
         };
 
-        stream(noQuantityQueries).forEach(q -> assertEquals("", cut.buildQuery(q, params)));
+        stream(noQuantityQueries).forEach(q -> assertEquals("*:*", cut.buildQuery(q, params)));
     }
 
     @Test

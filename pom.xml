@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.spaziocodice.labs</groupId>
+    <groupId>io.sease</groupId>
     <artifactId>solr-quantities-detection-qparsers</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
@@ -21,12 +21,12 @@
             <id>agazzarini</id>
             <name>Andrea Gazzarini</name>
             <url>http://linkedin.com/in/andreagazzarini/</url>
-            <organization>SpazioCodice Srl</organization>
-            <organizationUrl>http://www.spaziocodice.com</organizationUrl>
+            <organization>Sease Srl</organization>
+            <organizationUrl>http://www.sease.io</organizationUrl>
             <roles>
                 <role>Developer</role>
             </roles>
-            <email>a.gazzarini@spaziocodice.com</email>
+            <email>a.gazzarini@sease.io</email>
         </developer>
     </developers>
     <distributionManagement>
@@ -106,7 +106,7 @@
                     <branch>refs/heads/mvn-repo</branch>
                     <includes><include>**/*</include></includes>
                     <repositoryName>solr-quantities-detection-qparsers</repositoryName>
-                    <repositoryOwner>spaziocodice</repositoryOwner>
+                    <repositoryOwner>SeaseLtd</repositoryOwner>
                 </configuration>
                 <executions>
                     <execution>
