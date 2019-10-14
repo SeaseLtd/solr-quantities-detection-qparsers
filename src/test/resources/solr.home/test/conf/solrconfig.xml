@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <config>
     <luceneMatchVersion>7.1.0</luceneMatchVersion>
-    <lib dir="${user.home}/.m2/repository/com/spaziocodice/labs/solr-quantities-detection-qparsers/1.0/" regex=".*\.jar" />
+    <lib dir="${user.home}/.m2/repository/io/sease/solr-quantities-detection-qparsers/1.0/" regex=".*\.jar" />
     <dataDir>${solr.data.dir:/var/data/solr}/${solr.core.name:}</dataDir>
     <directoryFactory name="DirectoryFactory" class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}"/>
     <codecFactory class="solr.SchemaCodecFactory"/>

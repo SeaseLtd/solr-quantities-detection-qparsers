@@ -4,7 +4,7 @@
     <field name="id" type="string"/>
     <field name="country" type="string"/>
 
-    <fieldType name="text" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true" indexed="true" stored="false" omitNorms="true">
+    <fieldType name="text" class="solr.TextField" positionIncrementGap="100" autoGeneratePhraseQueries="true" indexed="true" stored="true" omitNorms="true">
         <analyzer type="index">
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <filter class="solr.LowerCaseFilterFactory"/>
